@@ -1,0 +1,6 @@
+resources:
+- Namespace.yaml
+- Deployment.yaml
+- Service.yaml
+- Configmap.yaml
+namespace: zk-client
