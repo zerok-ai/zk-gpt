@@ -10,7 +10,7 @@ class GPTServiceProvider:
     def registerGPTHandler(self, handler):
         if handler not in self.gptHandlers:
             self.gptHandlers[handler] = GPT()
-        print("registerGPTHandler > " + handler + "[" + self.gptHandlers[handler].contextSize() + "]")
+        print("registerGPTHandler > " + handler + "[" + str(self.gptHandlers[handler].contextSize()) + "]")
         return self.gptHandlers[handler]
 
     def deregisterGPTHandler(self, handler):
