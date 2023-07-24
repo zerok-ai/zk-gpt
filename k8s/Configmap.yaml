@@ -6,3 +6,4 @@ data:
   config.yaml: |-
     host: "zk-axon.zk-client.svc.cluster.local:80"
     openai_key: "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"
+    max_span_raw_data_length: 1000

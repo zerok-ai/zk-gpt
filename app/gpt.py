@@ -36,6 +36,7 @@ class GPT:
         print(self.context)
 
         response = openai.ChatCompletion.create(
+            # model="gpt-3.5-turbo",
             model="gpt-3.5-turbo-16k",
             messages=self.context
         )
