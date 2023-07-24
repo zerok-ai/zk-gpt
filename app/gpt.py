@@ -10,18 +10,24 @@ class GPTServiceProvider:
     def registerGPTHandler(self, handler):
         if handler not in self.gptHandlers:
             self.gptHandlers[handler] = GPT()
+        print("registerGPTHandler > " + handler + "[" + self.gptHandlers[handler].contextSize() + "]")
         return self.gptHandlers[handler]
 
     def deregisterGPTHandler(self, handler):
+        print("deregisterGPTHandler < " + handler)
         if handler in self.gptHandlers:
             del self.gptHandlers[handler]
 
     def hasHandler(self, handler):
+        print("hasHandler | " + handler)
         return handler in self.gptHandlers
 
 
 class GPT:
     context = []
+
+    def contextSize(self):
+        return len(self.context)
 
     def setContext(self, contextText):
         self.context.append(
@@ -38,7 +44,7 @@ class GPT:
         response = openai.ChatCompletion.create(
             # model="gpt-3.5-turbo",
             model="gpt-3.5-turbo-16k",
-            messages=self.context
+            messages=self.context[-25:]
         )
 
         result = ''
