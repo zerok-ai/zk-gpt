@@ -31,7 +31,7 @@ def getIncidentRCA(issue_id, incident_id):
     for spanId in spansMap:
         span = spansMap[spanId]
         span["span_id"] = spanId
-        gptInstance.setContext(span)
+        gptInstance.setContext(str(span))
 
     question = "What seems to be the issue in above trace?"
     answer = gptInstance.findAnswers(question)
