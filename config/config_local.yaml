@@ -1,3 +1,4 @@
 host: "<host-for-axon-service>"
 openai_key: "<openAPI-key>"
 max_span_raw_data_length: 1000
+redis_host: "redis-host" # default port: 6379

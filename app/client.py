@@ -4,6 +4,7 @@ import json
 import redis
 
 host = config.configuration.get("host", "localhost:8080")
+redis_host = config.configuration.get("redis_host", "localhost")
 redis_db = 6
 
 
@@ -23,7 +24,7 @@ def getIssueSummary(issue_id):
 def getScenario(scenario_id):
     try:
         # Connect to Redis
-        r = redis.StrictRedis(host='localhost', port=6379, db=redis_db)
+        r = redis.StrictRedis(host=redis_host, port=6379, db=redis_db)
 
         # Read the JSON object from the specified key
         json_data = r.get(scenario_id)
