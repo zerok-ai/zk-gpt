@@ -6,6 +6,37 @@ GPTServiceProvider = gpt.GPTServiceProvider()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
 
 
+def getIssueSummary(issue_id):
+    issueSummary = client.getIssueSummary(issue_id)
+    gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
+
+    gptInstance.setContext("An issue is defined as a group of incidents which are grouped by issue_title.")
+    gptInstance.setContext("The following are the statistics for an issue:")
+    gptInstance.setContext(issueSummary)
+
+    question = "Summarise the issue statistics in above issue in 2 lines."
+    answer = gptInstance.findAnswers(question)
+
+    return answer
+
+
+def getScenario(scenario_id):
+    scenario_def = client.getScenario(scenario_id)
+    scenario_stats = client.getScenarioStats(scenario_id)
+
+    gptInstance = GPTServiceProvider.registerGPTHandler("scenario-"+scenario_id)
+
+    gptInstance.setContext("A scenario is defined as a set of rules which are executed on network traces.")
+    gptInstance.setContext("The following is the scenario definition containing the rules:")
+    gptInstance.setContext(scenario_def)
+    gptInstance.setContext("The following is the scenario statistics for the provided scenario:")
+    gptInstance.setContext(scenario_stats)
+
+    question = "Summarise the rules and the statistics features in above scenario in 2 lines."
+    answer = gptInstance.findAnswers(question)
+
+    return answer
+
 def getIncidentRCA(issue_id, incident_id):
     spansMap = client.getSpansMap(issue_id, incident_id)
     for span_id in spansMap:
@@ -27,7 +58,6 @@ def getIncidentRCA(issue_id, incident_id):
     gptInstance.setContext(
         "The request and response payloads are truncated to " + str(MAX_PAYLOAD_SIZE) + " characters for brevity.")
 
-    # gptInstance.setContext("Which specific data points helped you arrive to this RCA? give to the point answer in a concise manner.")
     gptInstance.setContext("Following are the spans:")
     for spanId in spansMap:
         span = spansMap[spanId]
@@ -35,7 +65,7 @@ def getIncidentRCA(issue_id, incident_id):
         spanContext = str(span).replace(" ", "")
         gptInstance.setContext(spanContext)
 
-    question = "Can you summarise the root cause of the issue in above trace in 2 lines? add 'likely cause' as header for the response."
+    question = "Summarise the root cause of the issue in above trace in 2 lines."
     answer = gptInstance.findAnswers(question)
 
     print("Q:" + question)

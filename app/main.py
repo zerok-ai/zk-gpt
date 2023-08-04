@@ -4,6 +4,18 @@ import resource
 app = Flask(__name__)
 
 
+@app.route('/v1/c/gpt/scenario/<scenario_id>', methods=['GET'])
+def get_scenario(scenario_id):
+    summary = resource.getScenario(scenario_id)
+    return jsonify({"payload": {"summary": summary}})
+
+
+@app.route('/v1/c/gpt/issue/<issue_id>', methods=['GET'])
+def get_issue(issue_id):
+    summary = resource.getIssueSummary(issue_id)
+    return jsonify({"payload": {"summary": summary}})
+
+
 @app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['GET'])
 def get_incident(issue_id, incident_id):
     rca = resource.getIncidentRCA(issue_id, incident_id)
