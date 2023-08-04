@@ -27,7 +27,7 @@ def getIncidentRCA(issue_id, incident_id):
     gptInstance.setContext(
         "The request and response payloads are truncated to " + str(MAX_PAYLOAD_SIZE) + " characters for brevity.")
 
-    gptInstance.setContext("Which specific data points helped you arrive to this RCA? give to the point answer in a concise manner.")
+    # gptInstance.setContext("Which specific data points helped you arrive to this RCA? give to the point answer in a concise manner.")
     gptInstance.setContext("Following are the spans:")
     for spanId in spansMap:
         span = spansMap[spanId]

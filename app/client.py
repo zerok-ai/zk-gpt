@@ -5,7 +5,7 @@ host = config.configuration.get("host", "localhost:8080")
 
 
 def getSpansMap(issue_id, incident_id):
-    url = f"http://{host}/v1/c/issue/{issue_id}/incident/{incident_id}"
+    url = f"http://{host}/v1/c/axon/issue/{issue_id}/incident/{incident_id}"
     params = {"limit": 10, "offset": 0}
 
     try:
@@ -19,7 +19,7 @@ def getSpansMap(issue_id, incident_id):
 
 
 def getSpanRawdata(issue_id, incident_id, span_id):
-    url = f"http://{host}/v1/c/issue/{issue_id}/incident/{incident_id}/span/{span_id}"
+    url = f"http://{host}/v1/c/axon/issue/{issue_id}/incident/{incident_id}/span/{span_id}"
 
     try:
         response = requests.get(url)
