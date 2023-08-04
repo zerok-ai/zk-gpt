@@ -31,7 +31,7 @@ class GPT:
 
     def setContext(self, contextText):
         self.context.append(
-            {"role": "system", "content": contextText}
+            {"role": "system", "content": str(contextText)}
         )
 
     def findAnswers(self, question):
@@ -47,6 +47,8 @@ class GPT:
             model="gpt-3.5-turbo-16k",
             messages=self.context,
         )
+
+        print(response)
 
         result = ''
         for choice in response.choices:

@@ -11,6 +11,8 @@ def getIssueSummary(issue_id):
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
 
     gptInstance.setContext("An issue is defined as a group of incidents which are grouped by issue_title.")
+    gptInstance.setContext("Issue title is defined as parts of grouping seperated by '¦' delimiter. Ignore the '¦' delimiter.")
+    gptInstance.setContext("The first item in grouping is the Issue and rest part defines the service for which the issue happened.")
     gptInstance.setContext("The following are the statistics for an issue:")
     gptInstance.setContext(issueSummary)
 

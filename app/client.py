@@ -45,7 +45,7 @@ def getScenario(scenario_id):
 
 def getScenarioStats(scenario_id):
     url = f"http://{host}/v1/c/axon/scenario"
-    params = {"scenario_id_list": scenario_id}
+    params = {"scenario_id_list": scenario_id, "st": "-12h"}
 
     try:
         response = requests.get(url, params=params)
