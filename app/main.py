@@ -4,13 +4,13 @@ import resource
 app = Flask(__name__)
 
 
-@app.route('/v1/c/gpt/<issue_id>/incident/<incident_id>', methods=['GET'])
+@app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['GET'])
 def get_incident(issue_id, incident_id):
     rca = resource.getIncidentRCA(issue_id, incident_id)
     return jsonify({"payload": {"rca": rca}})
 
 
-@app.route('/v1/c/gpt/<issue_id>/incident/<incident_id>', methods=['POST'])
+@app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['POST'])
 def query_incident(issue_id, incident_id):
     data = request.get_json()
     if 'query' in data:
