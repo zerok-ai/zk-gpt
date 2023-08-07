@@ -48,8 +48,6 @@ class GPT:
             messages=self.context,
         )
 
-        print(response)
-
         result = ''
         for choice in response.choices:
             result += choice.message.content

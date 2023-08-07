@@ -52,7 +52,7 @@ def getScenarioStats(scenario_id):
         response = requests.get(url, params=params)
         response.raise_for_status()  # Raise an exception for HTTP errors (4xx and 5xx status codes)
         data = response.json()
-        scenarioDetail = data['payload']['scenarios'][0]
+        scenarioDetail = data['payload']['scenarios']
         return scenarioDetail
     except requests.exceptions.RequestException as e:
         print(f"Error occurred during API call: {e}")

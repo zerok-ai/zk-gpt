@@ -8,6 +8,24 @@ GPTServiceProvider = gpt.GPTServiceProvider()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
 
 
+def getScenarioSummary(scenario_id):
+    scenario_def = client.getScenario(scenario_id)
+    scenario_stats = client.getScenarioStats(scenario_id)
+
+    gptInstance = GPTServiceProvider.registerGPTHandler("scenario-" + scenario_id)
+
+    gptInstance.setContext("A scenario is defined as a set of rules which are executed on network traces.")
+    gptInstance.setContext("The following is the scenario definition containing the rules:")
+    gptInstance.setContext(scenario_def)
+    gptInstance.setContext("The following is the scenario statistics for the provided scenario:")
+    gptInstance.setContext(scenario_stats)
+
+    question = "Extract and Summarise the rules and the statistics of the above scenario in 2 lines."
+    answer = gptInstance.findAnswers(question)
+
+    return answer
+
+
 def getIssueSummary(issue_id):
     issueSummary = client.getIssueSummary(issue_id)
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
@@ -21,24 +39,6 @@ def getIssueSummary(issue_id):
     gptInstance.setContext(issueSummary)
 
     question = "Summarise the issue statistics in above issue in 2 lines."
-    answer = gptInstance.findAnswers(question)
-
-    return answer
-
-
-def getScenario(scenario_id):
-    scenario_def = client.getScenario(scenario_id)
-    scenario_stats = client.getScenarioStats(scenario_id)
-
-    gptInstance = GPTServiceProvider.registerGPTHandler("scenario-" + scenario_id)
-
-    gptInstance.setContext("A scenario is defined as a set of rules which are executed on network traces.")
-    gptInstance.setContext("The following is the scenario definition containing the rules:")
-    gptInstance.setContext(scenario_def)
-    gptInstance.setContext("The following is the scenario statistics for the provided scenario:")
-    gptInstance.setContext(scenario_stats)
-
-    question = "Extract and Summarise the rules and the statistics of the above scenario in 2 lines."
     answer = gptInstance.findAnswers(question)
 
     return answer

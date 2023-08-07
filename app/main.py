@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/v1/c/gpt/scenario/<scenario_id>', methods=['GET'])
 def get_scenario(scenario_id):
-    summary = resource.getScenario(scenario_id)
+    summary = resource.getScenarioSummary(scenario_id)
     return jsonify({"payload": {"summary": summary}})
 
 
