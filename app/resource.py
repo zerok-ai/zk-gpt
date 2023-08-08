@@ -30,15 +30,13 @@ def getIssueSummary(issue_id):
     issueSummary = client.getIssueSummary(issue_id)
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
 
-    gptInstance.setContext("An issue is defined as a group of incidents which are grouped by issue_title.")
-    gptInstance.setContext(
-        "Issue title is defined as parts of grouping seperated by '¦' delimiter. Ignore the '¦' delimiter.")
-    gptInstance.setContext(
-        "The first item in grouping is the Issue and rest part defines the service for which the issue happened.")
-    gptInstance.setContext("The following are the statistics for an issue:")
-    gptInstance.setContext(issueSummary)
+    gptInstance.setContext("An issue is defined as " + str(issueSummary["issue_title"]) + " with attributes separated by `¦` character")
+    gptInstance.setContext("attributes include kubernetes namespace/service name and the issue type")
+    gptInstance.setContext("We have collected " + str(issueSummary["total_count"]) + " data samples for inference of this issue.")
+    gptInstance.setContext("Data was collected from zeroK operator and kubernetes metrics server.")
+    gptInstance.setContext("To understand why a particular incident happened, click on any distinct incident on the right")
 
-    question = "Summarise the issue statistics in above issue in 2 lines."
+    question = "Summarize the issue in 2 lines including the number of data samples collected and the data sources."
     answer = gptInstance.findAnswers(question)
 
     return answer
@@ -79,7 +77,7 @@ def getIncidentRCA(issue_id, incident_id):
 
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
 
-    gptInstance.setContext("We are using a json array to represent a network traces across different protocols.")
+    gptInstance.setContext("We are using a json array to represent a network traces and payload data across different protocols.")
     gptInstance.setContext(
         "For the following json array containing request and response payloads for all spans for a trace, "
         "we will need to find the root cause")
@@ -95,7 +93,7 @@ def getIncidentRCA(issue_id, incident_id):
         spanContext = str(span)
         gptInstance.setContext(spanContext)
 
-    question = "Summarise the root cause of the issue in above trace in 2 lines."
+    question = "Summarise the root cause of the issue in above trace in 2 lines. including exception message and details needed to debug this issue."
     answer = gptInstance.findAnswers(question)
 
     print("Q:" + question)
