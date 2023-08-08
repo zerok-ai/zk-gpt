@@ -30,7 +30,8 @@ def getIssueSummary(issue_id):
     issueSummary = client.getIssueSummary(issue_id)
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
 
-    gptInstance.setContext("An issue is defined as " + str(issueSummary["issue_title"]) + " with attributes separated by `¦` character")
+    gptInstance.setContext("An issue is defined as set of attributes separated by `¦` character. this convention is not to be part of summary")
+    gptInstance.setContext("the issue in this case is " + str(issueSummary["issue_title"]))
     gptInstance.setContext("attributes include kubernetes namespace/service name and the issue type")
     gptInstance.setContext("We have collected " + str(issueSummary["total_count"]) + " data samples for inference of this issue.")
     gptInstance.setContext("Data was collected from zeroK operator and kubernetes metrics server.")
@@ -77,7 +78,21 @@ def getIncidentRCA(issue_id, incident_id):
 
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
 
-    gptInstance.setContext("We are using a json array to represent a network traces and payload data across different protocols.")
+    gptInstance.setContext(
+        "We are using a json array to represent a network traces and payload data across different protocols.")
+
+    gptInstance.setContext(
+        "The API is deployed in a kubernetes cluster whose state is defined as follows:")
+    gptInstance.setContext("namespace: sofa-shop-mysql.")
+    gptInstance.setContext("Services: (output of kubectl describe services -n sofa-shop-mysql")
+
+    gptInstance.setContext('''Service Name: availability, pods: 0/0, target:  http://availability.sofa-shop-mysql.svc.cluster.local''')
+    gptInstance.setContext('''Service Name: demo-shop-service, pods: 1/1, target: http://demo-shop-service.sofa-shop-mysql.svc.cluster.local''')
+    gptInstance.setContext(''' Service Name: inventory, pods: 1/1, target: http://inventory.sofa-shop-mysql.svc.cluster.local''')
+    gptInstance.setContext('''Service Name: order, pods: 1/1, target: http://order.sofa-shop-mysql.svc.cluster.local''')
+    gptInstance.setContext('''Service Name: product, pods: 1/1, target: http://product.sofa-shop-mysql.svc.cluster.local''')
+
+
     gptInstance.setContext(
         "For the following json array containing request and response payloads for all spans for a trace, "
         "we will need to find the root cause")
@@ -93,7 +108,7 @@ def getIncidentRCA(issue_id, incident_id):
         spanContext = str(span)
         gptInstance.setContext(spanContext)
 
-    question = "Summarise the root cause of the issue in above trace in 2 lines. including exception message and details needed to debug this issue."
+    question = "Summarise the root cause of the issue in above trace in 2 lines. including exception, infra or payload details needed to explain the cause of issue."
     answer = gptInstance.findAnswers(question)
 
     print("Q:" + question)
