@@ -12,7 +12,7 @@ on:
       GKE_CLUSTER:
         description: 'Cluster Name'
         required: true
-        default: 'pxclient02'
+        default: 'devclient02'
   workflow_call:
     inputs:
       VERSION:
@@ -138,9 +138,6 @@ jobs:
           helm --install  \
           --set=image.repo=$DOCKER_REG/$PROJECT_ID/$DOCKER_REPO/$CLUSTERNAME/$APP_NAME \
           --set=image.tag=$VERSION \
-          --set=postgres.host=$POSTGRES_HOST \
-          --set=postgres.user=$POSTGRES_USER \
-          --set=postgres.dbname=$POSTGRES_DB \
           upgrade $APP_NAME \
            -f ./helm-charts/values.yaml ./helm-charts/ \
            --create-namespace \
