@@ -1,4 +1,5 @@
 import json
+
 from flask import jsonify
 import client
 import gpt
@@ -32,7 +33,6 @@ def getIssueSummary(issue_id):
     issueSummary = client.getIssueSummary(issue_id)
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
 
-    client.getIssueIncidents(issue_id)
 
     gptInstance.setContext("An issue is defined as set of attributes separated by `¦` character. this convention is not to be part of summary")
     gptInstance.setContext("the issue in this case is " + str(issueSummary["issue_title"]))
@@ -73,7 +73,9 @@ def getAndSanitizeSpansMap(issue_id, incident_id):
                 filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
         else:
             filteredSpansMap[spanId] = span
-
+            
+    print(filteredSpansMap)
+    
     return filteredSpansMap
 
 
