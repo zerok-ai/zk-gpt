@@ -1,7 +1,5 @@
 from flask import Flask, jsonify, request
 import resource
-from typing import List, Tuple, Any
-from pydantic.main import BaseModel
 import uuid
 
 app = Flask(__name__)
