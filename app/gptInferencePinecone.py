@@ -16,21 +16,23 @@ class GptInferencePineconeVectorDb:
     issuesInVectorDB = dict()    
 
     def vectorizeIncidentAndPushtoVectorDb(self , issue): 
-        if issue not in self.issuesInVectorDB:
-            self.issuesInVectorDB[issue] = dict({"status": "Vectorrization under progress","issue":{issue}})
-            #inisialize and push to vector db
-            issueVectorization = IssueVectorization()
-            issueVectorization.vectorsizeIssue(issue)
-            print("should write logic to push to vector DB")
-            self.issuesInVectorDB[issue]['status'] = "vectorization complete"
+        self.issuesInVectorDB[issue] = dict({"status": "VECTORIZATION_IN_PROGRESS","issue":{issue}})
+        #inisialize and push to vector db
+        issueVectorization = IssueVectorization()
+        issueVectorization.vectorsizeIssue(issue)
+        self.issuesInVectorDB[issue]['status'] = "VECTORIZATION_COMPLETE"
         return self.issuesInVectorDB[issue]
     
     def hasIssueInDb(self, issue):
         print("hasIssue | " + issue)
-        return issue in self.issuesInVectorDB
+        findIssue = client.findIfIssueIsPresentInDb(issue)
+        if findIssue is False: 
+            return False
+        else: 
+            return True 
+
     
     def getGptInferencesForQuery(self,issue,query,temperature,topK):
-        print("")
         issueVectorization = IssueVectorization()
         respone = issueVectorization.getGptInferenceUsingVectorDB(query,issue,temperature,topK)
         return respone
@@ -230,15 +232,6 @@ class IssueVectorization:
         response = "Query : {}\n".format(query)
         response+="Answer : {}\n".format(str(ans))
         print(response)
-
-        # qa_with_sources = RetrievalQAWithSourcesChain.from_chain_type(
-        #     llm=llm,
-        #     chain_type="stuff",
-        #     retriever=vectorstore.as_retriever()
-        # )
-
-        # print("\n ------------------------------------------------------------------------------------------------ \n")
-        # print(str(qa_with_sources(query)))
 
         return str(ans)
 
