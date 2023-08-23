@@ -9,17 +9,23 @@ from langchain.vectorstores import Pinecone
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains import RetrievalQAWithSourcesChain
 import client
+import config
+
+openai_api_key = config.configuration.get("openai_key", "")
+pinecone_index_key = config.configuration.get("pinecone_index_key","zk-index")
+pinecone_api_key=config.configuration.get("pinecone_api_key","cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2")
+pinecone_environment=config.configuration.get("pinecone_environment","us-west4-gcp-free")
 
 class GptInferencePineconeVectorDb:
-    issuesInVectorDB = dict()    
+    def __init__ (self): 
+        self.issuesInVectorDB = dict()  
+        self.issueVectorization = IssueVectorization()  
 
     def vectorizeIncidentAndPushtoVectorDb(self , issue): 
         self.issuesInVectorDB[issue] = dict({"status": "VECTORIZATION_IN_PROGRESS","issue":{issue}})
         #inisialize and push to vector db
-        issueVectorization = IssueVectorization()
-        issueVectorization.vectorsizeIssue(issue)
+        self.issueVectorization.vectorsizeIssue(issue)
         self.issuesInVectorDB[issue]['status'] = "VECTORIZATION_COMPLETE"
         return self.issuesInVectorDB[issue]
     
@@ -31,28 +37,21 @@ class GptInferencePineconeVectorDb:
         else: 
             return True 
 
-    
     def getGptInferencesForQuery(self,issue,query,temperature,topK):
-        issueVectorization = IssueVectorization()
-        respone = issueVectorization.getGptInferenceUsingVectorDB(query,issue,temperature,topK)
+        respone = self.issueVectorization.getGptInferenceUsingVectorDB(query,issue,temperature,topK)
         return respone
     
 class IssueVectorization:
     def __init__ (self): 
         self.embed = OpenAIEmbeddings(
             model="text-embedding-ada-002",
-            openai_api_key="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"
+            openai_api_key=openai_api_key
         )
-        self.index_name = 'zk-index'
-        self.vectorDbStarterMethod(self)
-        self.index = None
-
-    @staticmethod
-    def vectorDbStarterMethod(self):
+        self.index_name = pinecone_index_key
         print("Initiating pinecone : ")
         pinecone.init(
-            api_key="cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2",
-            environment="us-west4-gcp-free"
+            api_key=pinecone_api_key,
+            environment=pinecone_environment
         )
         if self.index_name not in pinecone.list_indexes():
         # we create a new index
@@ -66,6 +65,7 @@ class IssueVectorization:
         print("pinecone index stats : " ) 
         print(str(self.index.describe_index_stats()))
         print("\n")
+        
     
     def vectorsizeIssue(self,issue): 
         print("vectorzing issue with issue Id : {} \n".format(issue))
@@ -78,7 +78,8 @@ class IssueVectorization:
         # get all incidents for the given issue
         issueIncidents = client.getIssueIncidents(issue)
 
-        # vector pushing logic 
+        # vector pushing logic starts here
+
         tiktoken.encoding_for_model('gpt-3.5-turbo')
         tokenizer = tiktoken.get_encoding('cl100k_base')
         # create the length function
@@ -88,39 +89,16 @@ class IssueVectorization:
                 disallowed_special=()
             )
             return len(tokens)
-        tiktoken_len("hello I am a chunk of text and using the tiktoken_len function "
-             "we can find the length of this chunk of text in tokens")
+        
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=400,
-            chunk_overlap=20,
+            chunk_overlap=30,
             length_function=tiktoken_len,
             separators=["\n\n", "\n", " ", ""]
         )
-        embed = OpenAIEmbeddings(
-            model="text-embedding-ada-002",
-            openai_api_key="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"
-        )
-        texts = [
-            'this is the first chunk of text',
-            'then another second chunk of text is here'
-        ]
-        index_name = 'zk-index'
-        pinecone.init(
-            api_key="cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2",
-            environment="us-west4-gcp-free"
-        )
-        if index_name not in pinecone.list_indexes():
-            # we create a new index
-            pinecone.create_index(
-                name=index_name,
-                metric='cosine',
-                dimension=1536  # 1536 dim of text-embedding-ada-002
-            )
-        index = pinecone.GRPCIndex(index_name)
-        index.describe_index_stats()
+        
         batch_limit = 100
         
-
         # for each incident create data and push to vector DB : 
         for incident in issueIncidents:
             spansMap = client.getSpansMap(issue, incident)
@@ -184,58 +162,59 @@ class IssueVectorization:
             # if we have reached the batch_limit we can add texts
             if len(texts) >= batch_limit:
                 ids = [str(uuid4()) for _ in range(len(texts))]
-                embeds = embed.embed_documents(texts)
-                index.upsert(vectors=zip(ids, embeds, metadatas))
+                embeds = self.embed.embed_documents(texts)
+                self.index.upsert(vectors=zip(ids, embeds, metadatas))
                 texts = []
                 metadatas = []
 
             if len(texts) > 0:
                 ids = [str(uuid4()) for _ in range(len(texts))]
-                embeds = embed.embed_documents(texts)
-                index.upsert(vectors=zip(ids, embeds, metadatas)) 
+                embeds = self.embed.embed_documents(texts)
+                self.index.upsert(vectors=zip(ids, embeds, metadatas)) 
+
+        print("vectorzing complete for issue Id : {} \n".format(issue))
 
 
     def getGptInferenceUsingVectorDB(self,query,issue,temperature,k): 
 
         print("fetching the top {} vectors form the vector DB specific to  query".format(k))
         #write logic to fetch from vector DB.
-        text_field = "text"
-        # switch back to normal index for langchain
-        index = pinecone.Index(self.index_name)
-
-        vectorstore = Pinecone(
-            index, self.embed.embed_query, text_field
-        )
-        metadata_filter = {"issue-id": issue,"source" : issue}
-        query  = query 
-        vectorstore.similarity_search(
-            query,  # our search query
-            k=k, # return 3 most relevant docs
-            filter=metadata_filter,
-        )
-
-        llm = ChatOpenAI(
-            openai_api_key="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",
-            model_name='gpt-3.5-turbo',
-            temperature=temperature
-        )
-
-        tempRetriever = vectorstore.as_retriever()
-
-        qa = RetrievalQA.from_chain_type(
-            llm=llm,
-            chain_type="stuff",
-            retriever=tempRetriever
-        )
-
-        ans = qa.run(query)
+        vectorStore = self.getVectorStore(issue,k,query)
+        retrievalQA = self.initializeLlmModelAndVectorRetrieval(temperature,vectorStore)
+        ans = retrievalQA.run(query)
         response = "Query : {}\n".format(query)
         response+="Answer : {}\n".format(str(ans))
         print(response)
-
         return str(ans)
 
 
+    def getVectorStore(self,issue,k,query):
+
+        text_field = "text"
+        # switch back to normal index for langchain
+        vectorstore = Pinecone(
+            pinecone.Index(self.index_name), self.embed.embed_query, text_field
+        )
+        metadata_filter = {"issue-id": issue,"source" : issue}
+        vectorstore.similarity_search(
+            query,  # our search query
+            k=k, # return k most relevant docs
+            filter=metadata_filter,
+        )
+        return vectorstore
+    
+    def initializeLlmModelAndVectorRetrieval(self,temperature,vectorStore):
+        llm = ChatOpenAI(
+            openai_api_key=openai_api_key,
+            model_name='gpt-3.5-turbo',
+            temperature=temperature
+        )
+        retrievalQA = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type="stuff",
+            retriever=vectorStore.as_retriever()
+        )
+        return retrievalQA
     
 
     

@@ -1,7 +1,0 @@
-Query : Summarize the exception occured in the issue : 043922f9248b7b8306d7d5508bac4b91 in 5 points
-Answer : 1. The exception occurred in the issue with hash '043922f9248b7b8306d7d5508bac4b91'.
-2. The issue title is 'Requests with latency > 100ms¦sofa-shop-mysql/order'.
-3. The scenario ID associated with the issue is '5' and the scenario version is '1684149744'.
-4. The source of the issue is 'ingress-nginx/ingress-nginx-controller' and the destination is 'sofa-shop-mysql/order'.
-5. The issue has occurred 27 times and has been seen between '2023-08-11T08:20:05.975605Z' and '2023-08-22T05:39:15.938396Z'.
-
