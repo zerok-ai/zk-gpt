@@ -1,9 +1,6 @@
 import tiktoken
-from datasets import load_dataset
-from getpass import getpass
 from langchain.embeddings.openai import OpenAIEmbeddings
 import pinecone
-from tqdm.auto import tqdm
 from uuid import uuid4
 from langchain.vectorstores import Pinecone
 from langchain.chat_models import ChatOpenAI
@@ -215,12 +212,3 @@ class IssueVectorization:
             retriever=vectorStore.as_retriever()
         )
         return retrievalQA
-    
-
-    
-    
-
-    
-
-
-    
