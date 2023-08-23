@@ -152,7 +152,3 @@ def getAllIssueInferences(issue_id,limit,offset):
     print("Fetching all the inferences for the given issue id :{issue_id}")
     userInferences = client.getAllUserIssueInferences(issue_id,limit,offset)
     return userInferences
-
-
-
-    
