@@ -48,6 +48,8 @@ class GPT:
             messages=self.context,
         )
 
+        # summarize the context and store and send the context in  
+
         result = ''
         for choice in response.choices:
             result += choice.message.content

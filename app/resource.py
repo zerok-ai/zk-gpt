@@ -2,9 +2,11 @@ import json
 
 import client
 import gpt
+import gptInferencePinecone
 import config
 
 GPTServiceProvider = gpt.GPTServiceProvider()
+GptInferencePineconeVectorDb = gptInferencePinecone.GptInferencePineconeVectorDb()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
 
 
@@ -30,6 +32,8 @@ def getIssueSummary(issue_id):
     issueSummary = client.getIssueSummary(issue_id)
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
 
+    client.getIssueIncidents(issue_id)
+
     gptInstance.setContext("An issue is defined as set of attributes separated by `¦` character. this convention is not to be part of summary")
     gptInstance.setContext("the issue in this case is " + str(issueSummary["issue_title"]))
     gptInstance.setContext("attributes include kubernetes namespace/service name and the issue type")
@@ -40,17 +44,24 @@ def getIssueSummary(issue_id):
     question = "Summarize the issue in 2 lines including the number of data samples collected and the data sources."
     answer = gptInstance.findAnswers(question)
 
+    print('issue data start -------------------------------------------------------------------------------------------------------------------------------------------------------')
+    print(str(issueSummary))
+
+    print('issue end -------------------------------------------------------------------------------------------------------------------------------------------------------')
+
+
     return answer
 
 
 def getAndSanitizeSpansMap(issue_id, incident_id):
     spansMap = client.getSpansMap(issue_id, incident_id)
+    exceptionMap = []
     for span_id in spansMap:
         spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
-        if len(spanRawData["request_payload"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["request_payload"] = spanRawData["request_payload"][:MAX_PAYLOAD_SIZE]
-        if len(spanRawData["response_payload"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["response_payload"] = spanRawData["response_payload"][:MAX_PAYLOAD_SIZE]
+        # if len(spanRawData["request_payload"]) > MAX_PAYLOAD_SIZE:
+        #     spanRawData["request_payload"] = spanRawData["request_payload"][:MAX_PAYLOAD_SIZE]
+        # if len(spanRawData["response_payload"]) > MAX_PAYLOAD_SIZE:
+        #     spanRawData["response_payload"] = spanRawData["response_payload"][:MAX_PAYLOAD_SIZE]
         spansMap[span_id].update(spanRawData)
 
     filteredSpansMap = dict()
@@ -65,11 +76,38 @@ def getAndSanitizeSpansMap(issue_id, incident_id):
             parentSpanId = span["parent_span_id"]
             if parentSpanId in spansMap:
                 spansMap[parentSpanId]["exception"] = span["request_payload"]
+                exceptionMap.append(span["request_payload"])
                 filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
         else:
             filteredSpansMap[spanId] = span
+        
 
-    print(filteredSpansMap)
+    with open("app/span.json", 'w') as file:
+        for spanId in filteredSpansMap:
+            span = spansMap[spanId]
+            json.dump(span, file, indent=4)
+    
+    with open("app/exception.json", 'w') as exp:
+        for ex in exceptionMap:
+            json.dump(ex, exp, indent=4)
+
+    with open("app/req.json",'w') as req:
+        for spanId in filteredSpansMap:
+            span = spansMap[spanId]
+            req_payload = span['request_payload']
+            json.dump(req_payload, req, indent=4)
+
+    with open("app/responsePayload.json",'w') as resFile:
+        for spanId in filteredSpansMap:
+            span = spansMap[spanId]
+            response_payload = span['response_payload']
+            json.dump(response_payload, resFile, indent=4)
+
+            
+
+    print('span data start -------------------------------------------------------------------------------------------------------------------------------------------------------')
+    print(str(filteredSpansMap))
+    print('span end -------------------------------------------------------------------------------------------------------------------------------------------------------')
 
     return filteredSpansMap
 
@@ -127,3 +165,19 @@ def getIncidentQuery(issue_id, incident_id, query):
     print("A:" + answer)
 
     return answer
+
+def getIssueObservation(issue_id,query):
+    # if not GptInferencePineconeVectorDb.hasIssueInDb(issue_id): 
+    #     GptInferencePineconeVectorDb.vectorizeIncidentAndPushtoVectorDb(issue_id)
+
+    return GptInferencePineconeVectorDb.getGptInferencesForQuery(issue_id,query,0.3,30)
+    
+def getIssueObservationWithParams(issue_id, query,temperature,topK,vectorEmbeddingModel,gptModel):
+    # if not GptInferencePineconeVectorDb.hasIssueInDb(issue_id): 
+    #     GptInferencePineconeVectorDb.vectorizeIncidentAndPushtoVectorDb(issue_id)
+    return GptInferencePineconeVectorDb.getGptInferencesForQuery(issue_id,query,temperature,topK)    
+    
+
+
+
+    

@@ -71,6 +71,19 @@ def getSpansMap(issue_id, incident_id):
     except requests.exceptions.RequestException as e:
         print(f"Error occurred during API call: {e}")
 
+def getIssueIncidents(issue_id):
+    url = f"http://{host}/v1/c/axon/issue/{issue_id}/incident"
+    params = {"limit": 50, "offset": 0}
+
+    try: 
+        response = requests.get(url,params=params)
+        response.raise_for_status # Raise an HTTPError exception for HTTP errors (4xx and 5xx status codes)
+        data = response.json()
+        incidents = data['payload']['trace_id_list']
+        return incidents
+    except requests.exceptions.RequestException as e:
+        print(f"Error while fetching incident Ids for a given issue : {e}")
+
 
 def getSpanRawdata(issue_id, incident_id, span_id):
     url = f"http://{host}/v1/c/axon/issue/{issue_id}/incident/{incident_id}/span/{span_id}"

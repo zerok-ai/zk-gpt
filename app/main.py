@@ -41,38 +41,30 @@ def query_incident(issue_id, incident_id):
     else:
         return jsonify({"error": "Missing 'query' parameter in the request body."}), 400
 
+@app.route('/v1/c/gpt/issue/<issue_id>/observation', methods=['POST'])
+def issue_observation(issue_id):
+    data = request.get_json()
+    print(str(data))
+    if 'query' in data:
+        query = data['query']
+        print(query)
+        answer = resource.getIssueObservation(issue_id, query)
+        return jsonify({"payload": {"query": query , "answer": answer}})
+    else:
+        return jsonify({"error": "Missing 'query' parameter in the request body."}), 400    
 
-
-@app.route('/v1/health', methods=['GET'])
-async def root():
-    return {"message": "OK"}
-
-
-@app.route('/v1/index', methods=['POST'])
-async def create_index(name: str):
-    return pineconeOps.create_index(index_name=name)
-
-
-@app.get("/api/v1/index/stats")
-async def stats():
-    return pineconeOps.fetch_stats()
-
-
-@app.route('/v1/connect', methods=['GET'])
-async def create_index():
-    return pineconeOps.connect_index()
-
-
-@app.route('/api/v1/vectors',method=['POST'])
-async def create_index(data: Data):
-    return pineconeOps.upsert(data=data.payload)
-
-
-@app.route('/v1/search-vector',method=['POST'])
-async def create_index(payload: List[Any]):
-    return pineconeOps.query(query_vector=payload)
-
-
-
+@app.route('/v1/c/gpt/issue/observation', methods=['POST'])
+def issue_observation_with_params():
+    data = request.get_json()
+    print(str(data))
+    query = data['query']
+    temperature = data['temperature']
+    topK = data['topK']
+    vectorEmbeddingModel = data['vectorEmbeddingModel']
+    gptModel = data['gptModel']
+    issue_id = data['issueId']
+    answer = resource.getIssueObservationWithParams(issue_id, query,temperature,topK,vectorEmbeddingModel,gptModel)
+    return jsonify({"payload": {"query": query,"issueId": issue_id,"temperature":  temperature,"vectorEmbeddingModel": vectorEmbeddingModel,"topK": topK,"gptModel": gptModel,"Answer": answer}})
+ 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
