@@ -5,8 +5,6 @@ from pydantic.main import BaseModel
 import uuid
 
 app = Flask(__name__)
-class Data(BaseModel):
-    payload: List[Tuple[Any, Any]]
 
 
 @app.route('/v1/c/gpt/scenario/<scenario_id>', methods=['GET'])
