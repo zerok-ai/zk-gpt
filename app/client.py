@@ -5,7 +5,7 @@ import redis
 import psycopg2
 
 host = config.configuration.get("host", "localhost:8080")
-redis_host = config.configuration.get("postgres_host", "localhost")
+redis_host = config.configuration.get("redis_host", "localhost")
 redis_db = 6
 postgres_host  = config.configuration.get("postgres_host", "localhost")
 postgres_port  = config.configuration.get("postgres_port", "5432")
@@ -125,7 +125,7 @@ def getAllUserIssueInferences(issue_id,limit,offset):
 
             queryString = bytes(row[3]).decode('utf-8')
             answerString = bytes(row[4]).decode('utf-8')
-                        
+
             results.append({
                 'issueId': row[2],
                 'query': queryString,

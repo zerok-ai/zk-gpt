@@ -6,7 +6,6 @@ openai.api_key = config.configuration.get("openai_key", "")
 
 class GPTServiceProvider:
     gptHandlers = dict()
-
     def registerGPTHandler(self, handler):
         if handler not in self.gptHandlers:
             self.gptHandlers[handler] = GPT()
@@ -47,9 +46,7 @@ class GPT:
             model="gpt-3.5-turbo-16k",
             messages=self.context,
         )
-
-        # summarize the context and store and send the context in  
-
+ 
         result = ''
         for choice in response.choices:
             result += choice.message.content
