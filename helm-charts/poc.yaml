@@ -4,6 +4,7 @@ global:
 kubernetesClusterDomain: cluster.local
 zkGpt:
   configYaml: |-
+    host: {{ .Values.zkGpt.host }}
     redis_host: {{ .Values.redis.host }}
     openai_key: {{ .Values.openai.apikey }}
     max_span_raw_data_length: {{ .Values.maxspanrawdatalength }}
