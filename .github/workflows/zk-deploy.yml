@@ -108,6 +108,11 @@ jobs:
         with:
           cluster_name: '${{ needs.init.outputs.CLUSTERNAME }}'
           location: '${{ env.GKE_ZONE }}'
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: helm-charts
+      
       - name: Deploy
         run: |-
           helm --install  \
