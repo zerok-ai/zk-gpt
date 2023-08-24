@@ -6,4 +6,4 @@ redis==4.6.0
 langchain==0.0.270
 tiktoken==0.4.0 
 pinecone-client==2.2.2
-psycopg2==2.9.7
+psycopg2-binary==2.9.7
