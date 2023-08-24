@@ -1,7 +1,7 @@
 name: deploy
 on:
   push:
-    tags: #r/<ENVIRONMENT>/<DOCKER-TAG-OR-VERSION>
+    tags: #r/<CLUSTER-NAME>/<DOCKER-TAG-OR-VERSION>
       - 'r/**'
   workflow_dispatch:
     inputs:
@@ -12,7 +12,7 @@ on:
       GKE_CLUSTER:
         description: 'Cluster Name'
         required: true
-        default: 'pxclient02'
+        default: 'devclient02'
   workflow_call:
     inputs:
       VERSION:
@@ -25,26 +25,35 @@ on:
       GKE_SA_KEY:
         required: true
 env:
+  ENV: ${{ github.event.inputs.ENV }}
   DOCKER_TAG: ${{ github.event.inputs.DOCKER_TAG }}
-  GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
-  GOOS: ${{ vars.GOOS }}
-  GOARCH: ${{ vars.GOARCH }}
-  CGO_ENABLED: ${{ vars.CGO_ENABLED }}
   GKE_SA_KEY: ${{ secrets.GKE_SA_KEY }}
   DOCKER_REG: ${{ vars.DOCKER_REG }}
   PROJECT_ID: ${{ vars.PROJECT_ID }}
-  NS: ${{ vars.NS }}
   DOCKER_REPO: ${{ vars.DOCKER_REPO }}
   APP_NAME: ${{ vars.APP_NAME }}
-  GKE_ZONE: ${{ vars.GKE_ZONE }}
-  GOPRIVATE: ${{ vars.GOPRIVATE }}
   TOKEN: ${{ secrets.GITPAT }}
+  VERSION: ${{ inputs.VERSION }}
+  NS: ${{ vars.NS }}
+  ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
+  DOCKER_IDENTIFIER: ${{ inputs.DOCKER_IDENTIFIER }}
+  POSTGRES_PASSWORD:  ${{ secrets.POSTGRES_PASSWORD }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
   POSTGRES_DB: ${{ vars.POSTGRES_DB }}
   POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+  REDIS_HOST: ${{ vars.REDIS_HOST }}
+  GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
+  GKE_SA_KEY: ${{ secrets.GKE_SA_KEY }}
+  GKE_ZONE : ${{ vars.GKE_ZONE }}
+  PINECONE_INDEX_KEY: ${{ secrets.PINECONE_INDEX_KEY }}
+  PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+  PINECONE_ENVIRONMENT: ${{ secrets.PINECONE_ENVIRONMENT }}
+  OPENAPI_KEY: ${{ secrets.OPENAPI_KEY }}
 
 jobs:
   init:
+<<<<<<< HEAD
     runs-on: zk-self-hosted
     outputs:
       ENVIRONMENT: ${{ steps.extractEnvironment.outputs.EXTRACTED_ENVIRONMENT }}
@@ -55,6 +64,7 @@ jobs:
         run: |
           echo "GIT_TAG=${GITHUB_REF#refs/*/}" >> "$GITHUB_ENV"
 
+      # tag : r/<clustername>/<version> we are extrating cluster name and version
       - name: Extract cluster and version
         id: extractClusterAndVersion
         run: |
@@ -86,6 +96,13 @@ jobs:
         env:
           STEPS_CONTEXT: ${{ toJson(steps) }}
         run: echo "$STEPS_CONTEXT"
+=======
+    uses: zerok-ai/zk-git-actions/.github/workflows/zk-dev-init.yml@main
+    with:
+      GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
+      GIT_TAG: ${{ github.ref }}
+      DOCKER_TAG: ${{ github.event.inputs.DOCKER_TAG }}
+>>>>>>> e26dffae28731dc45365bec11f131db2e2a86e76
 
   build-push:
     uses: zerok-ai/zk-gpt/.github/workflows/zk-build-push.yml@helm-push
@@ -96,7 +113,13 @@ jobs:
     secrets:
       GKE_SA_KEY: ${{ secrets.GKE_SA_KEY }}
     needs: init
-
+  helm-push:
+    uses: zerok-ai/zk-gpt/.github/workflows/zk-helm-publish.yml@helm-push
+    with:
+      HELM_VERSION: ${{ needs.init.outputs.VERSION }}
+      ENVIRONMENT: ${{ needs.init.outputs.ENVIRONMENT }}
+      DOCKER_IDENTIFIER: ${{ needs.init.outputs.CLUSTERNAME }}
+    needs: [ init,build-push ]
   deploy:
     needs: [ init,build-push ]
     env:
@@ -107,6 +130,8 @@ jobs:
       name: ${{ needs.init.outputs.ENVIRONMENT }}
     runs-on: zk-self-hosted
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Check output
         run: |
@@ -128,19 +153,11 @@ jobs:
         with:
           cluster_name: '${{ needs.init.outputs.CLUSTERNAME }}'
           location: '${{ env.GKE_ZONE }}'
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: helm-charts
-
       - name: Deploy
         run: |-
           helm --install  \
-          --set=image.repo=$DOCKER_REG/$PROJECT_ID/$DOCKER_REPO/$CLUSTERNAME/$APP_NAME \
+          --set=global.dockerBase=$DOCKER_REG/$PROJECT_ID/$DOCKER_REPO/$CLUSTERNAME \
           --set=image.tag=$VERSION \
-          --set=postgres.host=$POSTGRES_HOST \
-          --set=postgres.user=$POSTGRES_USER \
-          --set=postgres.dbname=$POSTGRES_DB \
           upgrade $APP_NAME \
            -f ./helm-charts/values.yaml ./helm-charts/ \
            --create-namespace \
