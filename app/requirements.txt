@@ -3,8 +3,7 @@ flask==2.3.2
 openai==0.27.8
 pyyaml==6.0.1
 redis==4.6.0
-psycopg2==2.9.6
 langchain==0.0.270
 tiktoken==0.4.0 
-pinecone-client=2.2.2
+pinecone-client==2.2.2
 psycopg2==2.9.7
