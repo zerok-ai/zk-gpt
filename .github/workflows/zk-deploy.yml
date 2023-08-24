@@ -53,6 +53,7 @@ env:
 
 jobs:
   init:
+<<<<<<< HEAD
     runs-on: zk-self-hosted
     outputs:
       ENVIRONMENT: ${{ steps.extractEnvironment.outputs.EXTRACTED_ENVIRONMENT }}
@@ -95,6 +96,13 @@ jobs:
         env:
           STEPS_CONTEXT: ${{ toJson(steps) }}
         run: echo "$STEPS_CONTEXT"
+=======
+    uses: zerok-ai/zk-git-actions/.github/workflows/zk-dev-init.yml@main
+    with:
+      GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
+      GIT_TAG: ${{ github.ref }}
+      DOCKER_TAG: ${{ github.event.inputs.DOCKER_TAG }}
+>>>>>>> e26dffae28731dc45365bec11f131db2e2a86e76
 
   build-push:
     uses: zerok-ai/zk-gpt/.github/workflows/zk-build-push.yml@helm-push
