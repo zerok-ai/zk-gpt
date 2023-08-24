@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zk-gpt.fullname" . }}
+  labels:
+  {{- include "zk-gpt.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.zkGpt.replicas }}
+  selector:
+    matchLabels:
+      app: zk-gpt
+    {{- include "zk-gpt.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: zk-gpt
+      {{- include "zk-gpt.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: "{{ .Values.global.dockerBase }}/{{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        name: zk-gpt
+        ports:
+        - containerPort: 80
+        resources: {{- toYaml .Values.zkGpt.zkGpt.resources | nindent 10 }}
+        volumeMounts:
+        - mountPath: /app/config
+          name: zk-gpt-config-volume
+      volumes:
+      - configMap:
+          name: {{ include "zk-gpt.fullname" . }}
+        name: zk-gpt-config-volume
