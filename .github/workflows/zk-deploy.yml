@@ -32,7 +32,6 @@ env:
   PROJECT_ID: ${{ vars.PROJECT_ID }}
   DOCKER_REPO: ${{ vars.DOCKER_REPO }}
   APP_NAME: ${{ vars.APP_NAME }}
-  TOKEN: ${{ secrets.GITPAT }}
   VERSION: ${{ inputs.VERSION }}
   NS: ${{ vars.NS }}
   ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
@@ -43,6 +42,7 @@ env:
   POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
   POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
   REDIS_HOST: ${{ vars.REDIS_HOST }}
+  AXON_HOST: ${{ vars.AXON_HOST }}
   GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
   GKE_SA_KEY: ${{ secrets.GKE_SA_KEY }}
   GKE_ZONE : ${{ vars.GKE_ZONE }}
@@ -53,56 +53,11 @@ env:
 
 jobs:
   init:
-<<<<<<< HEAD
-    runs-on: zk-self-hosted
-    outputs:
-      ENVIRONMENT: ${{ steps.extractEnvironment.outputs.EXTRACTED_ENVIRONMENT }}
-      CLUSTERNAME: ${{ steps.extractClusterAndVersion.outputs.TAG_CLUSTERNAME }}
-      VERSION: ${{ steps.extractClusterAndVersion.outputs.TAG_VERSION }}
-    steps:
-      - name: Set tag envt var
-        run: |
-          echo "GIT_TAG=${GITHUB_REF#refs/*/}" >> "$GITHUB_ENV"
-
-      # tag : r/<clustername>/<version> we are extrating cluster name and version
-      - name: Extract cluster and version
-        id: extractClusterAndVersion
-        run: |
-          if [ "$DOCKER_TAG" == "" ]; then
-            part1=$(echo "$GIT_TAG" | cut -d'/' -f2)
-            part2=$(echo "$GIT_TAG" | cut -d'/' -f3)
-            echo "TAG_CLUSTERNAME=$part1" >> $GITHUB_OUTPUT
-            echo "TAG_VERSION=$part2" >> $GITHUB_OUTPUT
-            clusterName=$part1
-          else
-            echo "TAG_CLUSTERNAME=$GKE_CLUSTER" >> $GITHUB_OUTPUT
-            echo "TAG_VERSION=$DOCKER_TAG" >> $GITHUB_OUTPUT
-            clusterName=$GKE_CLUSTER
-          fi
-          TAG_CLUSTERNAME_CAPITAL=$(echo "$clusterName" | tr '[:lower:]' '[:upper:]')
-          echo "TAG_CLUSTERNAME_CAPITAL=$TAG_CLUSTERNAME_CAPITAL" >> $GITHUB_OUTPUT
-
-      - name: Extract environment
-        id: extractEnvironment
-        env:
-          ORG_VARIABLE_NAME: ${{ format('{0}_ENV', steps.extractClusterAndVersion.outputs.TAG_CLUSTERNAME_CAPITAL) }}
-          ORG_VARIABLE: ${{ vars[format('{0}_ENV', steps.extractClusterAndVersion.outputs.TAG_CLUSTERNAME_CAPITAL)] }}
-        run: |
-          echo "EXTRACTED_ENVIRONMENT=$ORG_VARIABLE" >> $GITHUB_OUTPUT
-          echo "$ORG_VARIABLE_NAME"
-          echo "$ORG_VARIABLE"
-
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT"
-=======
     uses: zerok-ai/zk-git-actions/.github/workflows/zk-dev-init.yml@main
     with:
       GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
       GIT_TAG: ${{ github.ref }}
       DOCKER_TAG: ${{ github.event.inputs.DOCKER_TAG }}
->>>>>>> e26dffae28731dc45365bec11f131db2e2a86e76
 
   build-push:
     uses: zerok-ai/zk-gpt/.github/workflows/zk-build-push.yml@helm-push
@@ -158,7 +113,18 @@ jobs:
           helm --install  \
           --set=global.dockerBase=$DOCKER_REG/$PROJECT_ID/$DOCKER_REPO/$CLUSTERNAME \
           --set=image.tag=$VERSION \
+          --set=redis.host=$REDIS_HOST \
+          --set=postgres.host=$POSTGRES_HOST \
+          --set=postgres.user=$POSTGRES_USER \
+          --set=postgres.password=$POSTGRES_PASSWORD \
+          --set=postgres.port=$POSTGRES_PORT \
+          --set=postgres.db=$POSTGRES_DB \
+          --set=axon.host=$AXON_HOST \
+          --set=openapi.key=$OPENAPI_KEY \
+          --set=pinecone.environment=$PINECONE_ENVIRONMENT \
+          --set=pinecone.apikey=$PINECONE_API_KEY \
+          --set=pinecone.indexkey=$PINECONE_INDEX_KEY \
           upgrade $APP_NAME \
-           -f ./helm-charts/values.yaml ./helm-charts/ \
+           -f ./helm-charts/$ENV.yaml ./helm-charts/ \
            --create-namespace \
            --namespace $NS

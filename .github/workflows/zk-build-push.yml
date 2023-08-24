@@ -22,23 +22,9 @@ env:
   PROJECT_ID: ${{ vars.PROJECT_ID }}
   DOCKER_REPO: ${{ vars.DOCKER_REPO }}
   APP_NAME: ${{ vars.APP_NAME }}
-  TOKEN: ${{ secrets.GITPAT }}
   VERSION: ${{ inputs.VERSION }}
   ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
   DOCKER_IDENTIFIER: ${{ inputs.DOCKER_IDENTIFIER }}
-  POSTGRES_PASSWORD:  ${{ secrets.POSTGRES_PASSWORD }}
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  POSTGRES_DB: ${{ vars.POSTGRES_DB }}
-  POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
-  POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
-  REDIS_HOST: ${{ vars.REDIS_HOST }}
-  GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
-  GKE_SA_KEY: ${{ secrets.GKE_SA_KEY }}
-  GKE_ZONE : ${{ vars.GKE_ZONE }}
-  PINECONE_INDEX_KEY: ${{ secrets.PINECONE_INDEX_KEY }}
-  PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-  PINECONE_ENVIRONMENT: ${{ secrets.PINECONE_ENVIRONMENT }}
-  OPENAPI_KEY: ${{ secrets.OPENAPI_KEY }}
 
 jobs:
   print-envs:
