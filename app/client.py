@@ -4,7 +4,7 @@ import json
 import redis
 import psycopg2
 
-host = config.configuration.get("host", "localhost:8080")
+axon_host = config.configuration.get("axon_host", "localhost:8080")
 redis_host = config.configuration.get("redis_host", "localhost")
 redis_db = 6
 postgres_host  = config.configuration.get("postgres_host", "localhost")
@@ -13,9 +13,8 @@ postgres_db = config.configuration.get("postgres_db", "pl")
 postgres_user = config.configuration.get("postgres_user", "postgres")
 postgres_pass = config.configuration.get("postgres_pass", "eo1Mgtm6HI")
 
-
 def getIssueSummary(issue_id):
-    url = f"http://{host}/v1/c/axon/issue/{issue_id}"
+    url = f"http://{axon_host}/v1/c/axon/issue/{issue_id}"
 
     try:
         response = requests.get(url)
@@ -51,7 +50,7 @@ def getScenario(scenario_id):
 
 
 def getScenarioStats(scenario_id):
-    url = f"http://{host}/v1/c/axon/scenario"
+    url = f"http://{axon_host}/v1/c/axon/scenario"
     params = {"scenario_id_list": scenario_id, "st": "-12h"}
 
     try:
@@ -65,7 +64,7 @@ def getScenarioStats(scenario_id):
 
 
 def getSpansMap(issue_id, incident_id):
-    url = f"http://{host}/v1/c/axon/issue/{issue_id}/incident/{incident_id}"
+    url = f"http://{axon_host}/v1/c/axon/issue/{issue_id}/incident/{incident_id}"
     params = {"limit": 10, "offset": 0}
 
     try:
@@ -78,7 +77,7 @@ def getSpansMap(issue_id, incident_id):
         print(f"Error occurred during API call: {e}")
 
 def getIssueIncidents(issue_id):
-    url = f"http://{host}/v1/c/axon/issue/{issue_id}/incident"
+    url = f"http://{axon_host}/v1/c/axon/issue/{issue_id}/incident"
     params = {"limit": 50, "offset": 0}
 
     try: 
@@ -92,7 +91,7 @@ def getIssueIncidents(issue_id):
 
 
 def getSpanRawdata(issue_id, incident_id, span_id):
-    url = f"http://{host}/v1/c/axon/issue/{issue_id}/incident/{incident_id}/span/{span_id}"
+    url = f"http://{axon_host}/v1/c/axon/issue/{issue_id}/incident/{incident_id}/span/{span_id}"
 
     try:
         response = requests.get(url)
