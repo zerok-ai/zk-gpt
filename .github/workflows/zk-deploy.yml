@@ -108,6 +108,11 @@ jobs:
         with:
           cluster_name: '${{ needs.init.outputs.CLUSTERNAME }}'
           location: '${{ env.GKE_ZONE }}'
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: helm-charts
+      
       - name: Deploy
         run: |-
           helm --install  \
@@ -125,6 +130,6 @@ jobs:
           --set=pinecone.apikey=$PINECONE_API_KEY \
           --set=pinecone.indexkey=$PINECONE_INDEX_KEY \
           upgrade $APP_NAME \
-           -f ./helm-charts/$ENV.yaml ./helm-charts/ \
+           -f ./helm-charts/values.yaml ./helm-charts/ \
            --create-namespace \
            --namespace $NS
