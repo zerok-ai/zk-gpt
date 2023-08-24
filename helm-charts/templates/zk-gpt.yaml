@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "zk-gpt.fullname" . }}
+  labels:
+  {{- include "zk-gpt.labels" . | nindent 4 }}
+data:
+  config.yaml: {{ .Values.zkGpt.configYaml | toYaml | indent 1 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zk-gpt.fullname" . }}
+  labels:
+  {{- include "zk-gpt.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.zkGpt.type }}
+  selector:
+    app: zk-gpt
+  {{- include "zk-gpt.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.zkGpt.ports | toYaml | nindent 2 -}}
