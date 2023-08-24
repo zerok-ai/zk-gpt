@@ -32,7 +32,6 @@ env:
   PROJECT_ID: ${{ vars.PROJECT_ID }}
   DOCKER_REPO: ${{ vars.DOCKER_REPO }}
   APP_NAME: ${{ vars.APP_NAME }}
-  TOKEN: ${{ secrets.GITPAT }}
   VERSION: ${{ inputs.VERSION }}
   NS: ${{ vars.NS }}
   ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
@@ -43,6 +42,7 @@ env:
   POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
   POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
   REDIS_HOST: ${{ vars.REDIS_HOST }}
+  AXON_HOST: ${{ vars.AXON_HOST }}
   GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
   GKE_SA_KEY: ${{ secrets.GKE_SA_KEY }}
   GKE_ZONE : ${{ vars.GKE_ZONE }}
@@ -58,6 +58,7 @@ jobs:
       GKE_CLUSTER: ${{ github.event.inputs.GKE_CLUSTER }}
       GIT_TAG: ${{ github.ref }}
       DOCKER_TAG: ${{ github.event.inputs.DOCKER_TAG }}
+
   build-push:
     uses: zerok-ai/zk-gpt/.github/workflows/zk-build-push.yml@helm-push
     with:
@@ -112,6 +113,17 @@ jobs:
           helm --install  \
           --set=global.dockerBase=$DOCKER_REG/$PROJECT_ID/$DOCKER_REPO/$CLUSTERNAME \
           --set=image.tag=$VERSION \
+          --set=redis.host=$REDIS_HOST \
+          --set=postgres.host=$POSTGRES_HOST \
+          --set=postgres.user=$POSTGRES_USER \
+          --set=postgres.password=$POSTGRES_PASSWORD \
+          --set=postgres.port=$POSTGRES_PORT \
+          --set=postgres.db=$POSTGRES_DB \
+          --set=axon.host=$AXON_HOST \
+          --set=openapi.key=$OPENAPI_KEY \
+          --set=pinecone.environment=$PINECONE_ENVIRONMENT \
+          --set=pinecone.apikey=$PINECONE_API_KEY \
+          --set=pinecone.indexkey=$PINECONE_INDEX_KEY \
           upgrade $APP_NAME \
            -f ./helm-charts/values.yaml ./helm-charts/ \
            --create-namespace \
