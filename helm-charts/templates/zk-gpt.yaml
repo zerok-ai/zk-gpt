@@ -13,7 +13,7 @@ data:
     pinecone_index_key : {{ .Values.pinecone.indexkey }}
     pinecone_api_key : {{ .Values.pinecone.apikey }}
     axon_host: {{ .Values.axon.host }}
-    pinecone_environment : {{ .Values.pinecone.env }}
+    pinecone_environment : {{ .Values.pinecone.environment }}
     postgres_port : {{ .Values.postgres.port }}
     postgres_db : {{ .Values.postgres.db }}
     postgres_user : {{ .Values.postgres.user }}

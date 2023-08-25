@@ -119,11 +119,11 @@ jobs:
           --set=redis.host=$REDIS_HOST \
           --set=postgres.host=$POSTGRES_HOST \
           --set=postgres.user=$POSTGRES_USER \
-          --set=postgres.password=$POSTGRES_PASSWORD \
+          --set=postgres.pass=$POSTGRES_PASSWORD \
           --set=postgres.port=$POSTGRES_PORT \
           --set=postgres.db=$POSTGRES_DB \
           --set=axon.host=$AXON_HOST \
-          --set=openapi.apikey=$OPENAPI_KEY \
+          --set=openai.apikey=$OPENAPI_KEY \
           --set=pinecone.environment=$PINECONE_ENVIRONMENT \
           --set=pinecone.apikey=$PINECONE_API_KEY \
           --set=pinecone.indexkey=$PINECONE_INDEX_KEY \

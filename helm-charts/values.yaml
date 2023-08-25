@@ -3,19 +3,6 @@ global:
 
 kubernetesClusterDomain: cluster.local
 zkGpt:
-  # configYaml: 
-  #   redis_host: {{ .Values.redis.host }}
-  #   openai_key: {{ .Values.openai.apikey }}
-  #   max_span_raw_data_length: {{ .Values.maxspanrawdatalength }}
-  #   postgres_host: {{ .Values.postgres.host }}
-  #   pinecone_index_key : {{ .Values.pinecone.indexkey }}
-  #   pinecone_api_key : {{ .Values.pinecone.apikey }}
-  #   axon_host: {{ .Values.axon.host }}
-  #   pinecone_environment : {{ .Values.pinecone.env }}
-  #   postgres_port : {{ .Values.postgres.port }}
-  #   postgres_db : {{ .Values.postgres.db }}
-  #   postgres_user : {{ .Values.postgres.user }}
-  #   postgres_pass : {{ .Values.postgres.pass }}
   ports:
   - port: 80
     protocol: TCP
@@ -42,11 +29,11 @@ redis:
   port: ""
 
 pinecone:
-  env: ""
+  environment: ""
   apikey: "" 
   indexkey: "" 
 
-maxspanrawdatalength: ""
+maxspanrawdatalength: 1000
 
 openai:
   apikey: ""
