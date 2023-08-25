@@ -47,19 +47,15 @@ def getAndSanitizeSpansMap(issue_id, incident_id):
     spansMap = client.getSpansMap(issue_id, incident_id)
     for span_id in spansMap:
         spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
-        if len(spanRawData["request_payload"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["request_payload"] = spanRawData["request_payload"][:MAX_PAYLOAD_SIZE]
-        if len(spanRawData["response_payload"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["response_payload"] = spanRawData["response_payload"][:MAX_PAYLOAD_SIZE]
+        if len(spanRawData["req_body"]) > MAX_PAYLOAD_SIZE:
+            spanRawData["req_body"] = spanRawData["req_body"][:MAX_PAYLOAD_SIZE]
+        if len(spanRawData["resp_body"]) > MAX_PAYLOAD_SIZE:
+            spanRawData["resp_body"] = spanRawData["resp_body"][:MAX_PAYLOAD_SIZE]
         spansMap[span_id].update(spanRawData)
 
     filteredSpansMap = dict()
     for spanId in spansMap:
-        # remove error key from spanMap
-        del spansMap[spanId]["error"]
-
         span = spansMap[spanId]
-        span["span_id"] = spanId
         # remove exception span from spanMap
         if str(span["protocol"]).upper() == "EXCEPTION":
             parentSpanId = span["parent_span_id"]
@@ -92,6 +88,21 @@ def getIncidentRCA(issue_id, incident_id):
     gptInstance.setContext('''Service Name: order, pods: 1/1, target: http://order.sofa-shop-mysql.svc.cluster.local''')
     gptInstance.setContext('''Service Name: product, pods: 1/1, target: http://product.sofa-shop-mysql.svc.cluster.local''')
 
+    gptInstance.setContext(
+        "The API is deployed in a kubernetes cluster whose state is defined as follows:")
+    gptInstance.setContext("namespace: sofa-shop-mysql.")
+    gptInstance.setContext("Services: (output of kubectl describe services -n sofa-shop-mysql")
+
+    # Uncomment this if the span data for availability service is available.
+    # gptInstance.setContext('''Service Name: availability, pods: 0/0, target:  http://availability.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext('''Service Name: demo-shop-service, pods: 1/1, target: http://demo-shop-service.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext(''' Service Name: inventory, pods: 1/1, target: http://inventory.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext('''Service Name: order, pods: 1/1, target: http://order.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext('''Service Name: product, pods: 1/1, target: http://product.sofa-shop-mysql.svc.cluster.local''')
+
+    gptInstance.setContext(
+        '''If the response code is 502, attribute the issue to unavailable pods in 'availability' service in 'sofa-shop' namespace.''')
+    
 
     gptInstance.setContext(
         "For the following json array containing request and response payloads for all spans for a trace, "
