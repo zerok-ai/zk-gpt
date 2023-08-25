@@ -5,7 +5,7 @@ metadata:
   labels:
   {{- include "zk-gpt.labels" . | nindent 4 }}
 data:
-  config.yaml:
+  config.yaml: |-
     redis_host: {{ .Values.redis.host }}
     openai_key: {{ .Values.openai.apikey }}
     max_span_raw_data_length: {{ .Values.maxspanrawdatalength }}
