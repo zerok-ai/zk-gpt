@@ -123,7 +123,7 @@ jobs:
           --set=postgres.port=$POSTGRES_PORT \
           --set=postgres.db=$POSTGRES_DB \
           --set=axon.host=$AXON_HOST \
-          --set=openapi.key=$OPENAPI_KEY \
+          --set=openapi.apikey=$OPENAPI_KEY \
           --set=pinecone.environment=$PINECONE_ENVIRONMENT \
           --set=pinecone.apikey=$PINECONE_API_KEY \
           --set=pinecone.indexkey=$PINECONE_INDEX_KEY \

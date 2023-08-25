@@ -49,7 +49,7 @@ pinecone:
 maxspanrawdatalength: ""
 
 openai:
-  apiKey: ""
+  apikey: ""
 
 replicaCount: 1
 image:
