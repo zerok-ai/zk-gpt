@@ -42,7 +42,7 @@ class IssueVectorization:
     def __init__ (self): 
         self.embed = OpenAIEmbeddings(
             model="text-embedding-ada-002",
-            openai_api_key=openai_key
+            openai_api_key= config.configuration.get("openai_key", "")
         )
         self.index_name = pinecone_index_key
         print("Initiating pinecone : ")
