@@ -1,5 +1,4 @@
 import json
-`   `
 from flask import jsonify
 import client
 import gpt
