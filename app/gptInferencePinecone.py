@@ -9,8 +9,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import client
 import config
 
-openai_api_key = config.configuration.get("openai_key", "")
-pinecone_index_key = config.configuration.get("pinecone_index_key","zk-index")
+openai_key = config.configuration.get("openai_key", "")
+pinecone_index_key = config.configuration.get("pinecone_index_key","zk-index-prod")
 pinecone_api_key=config.configuration.get("pinecone_api_key","cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2")
 pinecone_environment=config.configuration.get("pinecone_environment","us-west4-gcp-free")
 
@@ -42,7 +42,7 @@ class IssueVectorization:
     def __init__ (self): 
         self.embed = OpenAIEmbeddings(
             model="text-embedding-ada-002",
-            openai_api_key=openai_api_key
+            openai_api_key=openai_key
         )
         self.index_name = pinecone_index_key
         print("Initiating pinecone : ")
@@ -88,8 +88,8 @@ class IssueVectorization:
             return len(tokens)
         
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=400,
-            chunk_overlap=30,
+            chunk_size=500,
+            chunk_overlap=50,
             length_function=tiktoken_len,
             separators=["\n\n", "\n", " ", ""]
         )
@@ -202,7 +202,7 @@ class IssueVectorization:
     
     def initializeLlmModelAndVectorRetrieval(self,temperature,vectorStore):
         llm = ChatOpenAI(
-            openai_api_key=openai_api_key,
+            openai_api_key=openai_key,
             model_name='gpt-3.5-turbo',
             temperature=temperature
         )
