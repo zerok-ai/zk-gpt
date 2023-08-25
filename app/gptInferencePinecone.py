@@ -58,7 +58,7 @@ class IssueVectorization:
                 dimension=1536  # 1536 dim of text-embedding-ada-002
             )
 
-        self.index = pinecone.GRPCIndex(self.index_name)
+        self.index = pinecone.Index(self.index_name)
         print("pinecone index stats : " ) 
         print(str(self.index.describe_index_stats()))
         print("\n")
