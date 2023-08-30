@@ -15,18 +15,18 @@ zkGpt:
       memory: 1Gi
 
 axon:
-  host: ""
+  host: "zk-axon.zk-client.svc.cluster.local"
 
 postgres:
-  host: ""
-  user: ""
-  port: ""
-  db: ""
+  host: "postgres.zk-client.svc.cluster.local"
+  user: "postgres"
+  port: "5432"
+  db: "pl"
   pass: ""
 
 redis: 
-  host: ""
-  port: ""
+  host: "redis-master.zk-client.svc.cluster.local"
+  port: "6379"
 
 pinecone:
   environment: ""
