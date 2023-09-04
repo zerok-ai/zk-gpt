@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import resource
 import uuid
+import podLevelInference
 
 app = Flask(__name__)
 
@@ -76,6 +77,32 @@ def get_all_issue_inferences(issue_id):
     allUserInferences = resource.getAllIssueInferences(issue_id,limit,offset)
     return jsonify({"payload": {"issueId" : issue_id,"UserInferences": allUserInferences}}) 
     
+
+@app.route('/v1/c/getPrometheusData', methods=['POST'])
+def get_prometheus_data():
+    data = request.get_json()
+    issue_id = data['issueId']
+    incident_id = data['incidentId']
+    prometheusData = podLevelInference.getPrometheusData(issue_id,incident_id)
+    return jsonify({"payload": {"issueId" : issue_id,"incidentId" : incident_id,"prometheusData": prometheusData}}) 
+
+
+@app.route('/v1/c/getIssueInferenceWithPromData', methods=['POST'])
+def get_issue_inference_with_prom_data():
+    data = request.get_json()
+    issue_id = data['issueId']
+    incident_id = data['incidentId']
+    allPodInferences = podLevelInference.getIssueInferenceUsingPromData(issue_id,incident_id)
+    return jsonify({"payload": {"issueId" : issue_id,"incidentId" : incident_id,"PodInferences": allPodInferences}}) 
+
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
