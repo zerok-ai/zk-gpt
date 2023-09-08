@@ -16,8 +16,48 @@ spec:
         app: zk-gpt
       {{- include "zk-gpt.selectorLabels" . | nindent 8 }}
     spec:
+      initContainers:
+        - command:
+            - sh
+            - -c
+            - 'set -xe; URL="${PROTOCOL}://${SERVICE_NAME}:${SERVICE_PORT}${HEALTH_PATH}";
+              until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ];
+              do echo "waiting for ${URL}"; sleep 2; done;'
+          name: operator-wait
+          env:
+            - name: SERVICE_NAME
+              value: zk-operator.zk-client.svc.cluster.local
+            - name: SERVICE_PORT
+              value: "8081"
+            - name: PROTOCOL
+              value: http
+            - name: HEALTH_PATH
+              value: "/healthz"
+          image: "{{ .Values.initImage.repo}}:{{ .Values.initImage.tag}}"
+          imagePullPolicy: IfNotPresent
+          resources: { }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       containers:
       - env:
+        - name: ZK_POSTGRES_PASSWORD # Setting Database password from Secret
+          valueFrom:
+            secretKeyRef:
+              name: postgres
+              key: postgres-password
+        - name: ZK_REDIS_PASSWORD # Setting Redis password from Secret
+          valueFrom:
+            secretKeyRef:
+              name: redis
+              key: redis-password
+        - name: ZK_REDIS_HOST # Setting Redis password from Secret
+          valueFrom:
+            configMapKeyRef:
+              name: zk-redis-config
+              key: redisHost
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
         image: "{{ .Values.global.dockerBase }}/{{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -32,4 +72,18 @@ spec:
       volumes:
       - configMap:
           name: {{ include "zk-gpt.fullname" . }}
-        name: zk-gpt-config-volume
+        name: zk-gpt-config-volume          - name: PL_POSTGRES_PASSWORD # Setting Database password from Secret
+            valueFrom:
+              secretKeyRef:
+                name: postgres
+                key: postgres-password
+          - name: ZK_REDIS_PASSWORD # Setting Redis password from Secret
+            valueFrom:
+              secretKeyRef:
+                name: redis
+                key: redis-password
+          - name: ZK_REDIS_HOST # Setting Redis password from Secret
+            valueFrom:
+              configMapKeyRef:
+                name: zk-redis-config
+                key: redisHost
