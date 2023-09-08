@@ -4,14 +4,16 @@ import json
 import redis
 import psycopg2
 
-axon_host = config.configuration.get("axon_host", "localhost:8080")
-redis_host = config.configuration.get("redis_host", "localhost")
-redis_db = 6
-postgres_host  = config.configuration.get("postgres_host", "localhost")
-postgres_port  = config.configuration.get("postgres_port", "5432")
-postgres_db = config.configuration.get("postgres_db", "pl")
-postgres_user = config.configuration.get("postgres_user", "postgres")
-postgres_pass = config.configuration.get("postgres_pass", "eo1Mgtm6HI")
+axon_host = config.configuration.get("ZK_AXON_HOST", "localhost:8080")
+redis_host = config.configuration.get("ZK_REDIS_HOST", "localhost")
+redis_db = config.configuration.get("ZK_REDIS_DB", 6)
+redis_pass = config.configuration.get("ZK_REDIS_PASSWORD", "")
+postgres_host  = config.configuration.get("POSTGRES_HOST", "localhost")
+postgres_port  = config.configuration.get("POSTGRES_PORT", "5432")
+postgres_db = config.configuration.get("POSTGRES_DB", "pl")
+postgres_user = config.configuration.get("POSTGRES_USER", "postgres")
+postgres_pass = config.configuration.get("POSTGRES_PASSWORD", "eo1Mgtm6HI")
+
 
 def getIssueSummary(issue_id):
     url = f"http://{axon_host}/v1/c/axon/issue/{issue_id}"
@@ -276,6 +278,44 @@ def findIfIssueIsPresentInDb(issue_id):
 
     except psycopg2.Error as e:
         print(f"Error occurred While fetching issueid in postgres : {e}")
+    finally:
+        # Close the cursor and the database connection
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+
+def findIfIssueIncidentIsPresentInDb(issue_id,incident_id):
+    # Database connection parameters
+    db_params = getPostgresDBParams()
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(**db_params)
+
+    # Create a cursor
+    cur = conn.cursor()
+
+    # SQL query to check for the existence of a record with the given issue_id
+    query = "SELECT * FROM public.issue_incident_inference_raw_data WHERE issue_id = %s AND incident_id = %s"
+
+    try:        
+        # Execute the check query with the issue_id as a parameter
+        cur.execute(query, (issue_id, incident_id))
+
+        # Fetch the result (True if a record exists, False if not)
+        row = cur.fetchone()
+
+        # Check if a row exists and return it, or return False if not
+        if row:
+            result = row
+        else:
+            result = False
+
+            return result
+
+    except psycopg2.Error as e:
+        print(f"Error occurred While fetching issueid, incident pair in postgres : {e}")
     finally:
         # Close the cursor and the database connection
         if cur:

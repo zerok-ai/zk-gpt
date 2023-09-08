@@ -1,5 +1,6 @@
 import json
 from flask import jsonify
+from langchain.llms import OpenAI 
 import client
 import gpt
 import gptInferencePinecone
@@ -8,6 +9,7 @@ import config
 GPTServiceProvider = gpt.GPTServiceProvider()
 GptInferencePineconeVectorDb = gptInferencePinecone.GptInferencePineconeVectorDb()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
+langChainInference = gptLangchianInference.LangChainInference
 
 def getScenarioSummary(scenario_id):
     scenario_def = client.getScenario(scenario_id)
@@ -112,15 +114,51 @@ def getIncidentRCA(issue_id, incident_id):
 
     gptInstance.setContext("Following are the spans:")
 
+    # lang chain integration
     spansMap = getAndSanitizeSpansMap(issue_id, incident_id)
+    spanList = []
     # provide spans as context
     for spanId in spansMap:
         span = spansMap[spanId]
         spanContext = str(span)
+        spanList.append(spanContext)
         gptInstance.setContext(spanContext)
 
     question = "Summarise the root cause of the issue in above trace in 2 lines. including exception, infra or payload details needed to explain the cause of issue."
     answer = gptInstance.findAnswers(question)
+
+    template = ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(
+                content=(
+                    "We are using a json array to represent a network traces and payload data across different protocols."
+                    "The API is deployed in a kubernetes cluster whose state is defined as follows:"
+                    "namespace: sofa-shop-mysql."
+                    "Services: (output of kubectl describe services -n sofa-shop-mysql"
+                    '''Service Name: availability, pods: 0/0, target:  http://availability.sofa-shop-mysql.svc.cluster.local'''
+                    '''Service Name: demo-shop-service, pods: 1/1, target: http://demo-shop-service.sofa-shop-mysql.svc.cluster.local'''
+                    ''' Service Name: inventory, pods: 1/1, target: http://inventory.sofa-shop-mysql.svc.cluster.local'''
+                    '''Service Name: order, pods: 1/1, target: http://order.sofa-shop-mysql.svc.cluster.local'''
+                    '''Service Name: product, pods: 1/1, target: http://product.sofa-shop-mysql.svc.cluster.local'''
+                    '''If the response code is 502, attribute the issue to unavailable pods in 'availability' service in 'sofa-shop' namespace.'''
+                    "For the following json array containing request and response payloads for all spans for a trace, "
+                    "we will need to find the root cause"
+                    "The request and response payloads are truncated to 1000 characters for brevity."
+                    "Following are the spans:"
+                    "{spans}"
+
+                )
+            ),
+            HumanMessagePromptTemplate.from_template("{text}"),
+        ]
+    )
+
+    llm = OpenAI(model_name="gpt-3.5-turbo")
+    res = llm(template.format_messages(spans = spanList ,text='Summarise the root cause of the issue in above trace in 2 lines. including exception, infra or payload details needed to explain the cause of issue.'))
+
+    print("\n --------------------LANGCHAIN---------------------------------------")
+    print(res)
+    print("\n ------------------------------------------------------------------------------------------------")
 
     print("Q:" + question)
     print("A:" + answer)
@@ -160,3 +198,79 @@ def getAllIssueInferences(issue_id,limit,offset):
     print("Fetching all the inferences for the given issue id :{issue_id}")
     userInferences = client.getAllUserIssueInferences(issue_id,limit,offset)
     return userInferences
+
+def getZerokIssueIncidentInference(issue_id,incident_id):
+    print("Starting the zerok inference for  issue id :{issue_id}")
+
+    data = {
+            "span_data" : None,
+            "req_res_data": None,
+            "prom_data": None,
+            "issue_data": None,
+        }
+
+    try:
+        # check in postgress if the issue is already inferenced 
+        # if yes send data directly from postgress 
+        dbInferenceData = client.findIfIssueIncidentIsPresentInDb(issue_id,incident_id)
+        if dbInferenceData != False:
+            return dbInferenceData   #modify the logic to send only the inference
+        
+        # if no genereate the inference and store in postgress for future reference 
+        # fetching all the issue data using different API's 
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # Define functions to call concurrently
+            span_data_future = executor.submit(dataDao.getTraceSpanData, issue_id, incident_id)
+            request_response_payload_future = executor.submit(dataDao.getRequestResponsePayload, issue_id, incident_id)
+            prometheus_data_future = executor.submit(dataDao.getPrometheusData, issue_id, incident_id)
+            issue_data_future = executor.submit(dataDao.getIssueData, issue_id, incident_id)
+
+            # Wait for all futures to complete
+            concurrent.futures.wait([span_data_future, request_response_payload_future, prometheus_data_future, issue_data_future])
+
+            # Get results or handle exceptions
+            span_data = span_data_future.result()
+            request_response_payload = request_response_payload_future.result()
+            prometheus_data = prometheus_data_future.result()
+            issue_data = issue_data_future.result()
+
+        # Handle data or exceptions here
+        if span_data is not None and request_response_payload is not None:
+            # Process span_data and request_response_payload
+            data['span_data'] =span_data
+        else:
+            # Handle missing data or exceptions
+            data["span_data"] = None
+
+        if prometheus_data is not None:
+            cpu_usage_data, memory_usage_data, pod_info_data, deployment_info_data, config_map_info_data = prometheus_data
+            # Process CPU, memory, pod, deployment, and config map data
+            data['prom_data'] =prometheus_data
+        else:
+            # Handle missing prometheus data or exceptions
+            data['prom_data'] =None
+
+        if issue_data is not None:
+            # Process issue_data
+            data['issue_data'] =issue_data
+        else:
+            # Handle missing prometheus data or exceptions
+            data['issue_data'] =None
+        
+    
+        # using langchain to get inference the issue data 
+        gptLangchainIssueInference = langChainInference.getGPTLangchainInference(issue_id,incident_id,data)
+        # store the inference and data in pinecone 
+        pineconeInteraction.ingestIssueDataToPinecone(data,gptLangchainIssueInference,issue_id,incident_id)
+        #  and store the meta information in DB 
+        client.ingestGptLangChainInference(issue_id,incident_id,gptLangchianInference)
+        # return the data
+        return gptLangchainIssueInference
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    
+
+
+   

@@ -22,7 +22,7 @@ postgres:
   user: "postgres"
   port: "5432"
   db: "pl"
-  pass: ""
+  password: ""
 
 redis: 
   host: "redis-master.zk-client.svc.cluster.local"

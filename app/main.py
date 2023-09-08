@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import resource
+import config
 import uuid
 
 app = Flask(__name__)
@@ -75,7 +76,19 @@ def get_all_issue_inferences(issue_id):
     offset = int(request.args.get('offset', default=0))
     allUserInferences = resource.getAllIssueInferences(issue_id,limit,offset)
     return jsonify({"payload": {"issueId" : issue_id,"UserInferences": allUserInferences}}) 
-    
+
+
+#Load config and Fetch the secrets from the server  
+def fetch_secrets_and_load_config():
+    try:
+        config.Config("config/config.yaml")
+        # If successful, return True
+        return True
+    except Exception as e:
+        print(f"Error fetching config and secrets: {str(e)}")
+        return False
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    if fetch_secrets_and_load_config():
+        # Start the application only if the config and secrets are fetched successfully
+        app.run(host='0.0.0.0', port=80)
