@@ -22,21 +22,21 @@ postgres:
   user: "postgres"
   port: "5432"
   db: "pl"
-  pass: ""
+  pass: "eo1Mgtm6HI"
 
 redis: 
   host: "redis-master.zk-client.svc.cluster.local"
   port: "6379"
 
 pinecone:
-  environment: ""
-  apikey: "" 
-  indexkey: "" 
+  environment: "us-west4-gcp-free"
+  apikey: "cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2" 
+  indexkey: "zk-index-prod" 
 
 maxspanrawdatalength: 1000
 
 openai:
-  apikey: ""
+  apikey: "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"
 
 replicaCount: 1
 image:
