@@ -7,17 +7,18 @@ metadata:
 data:
   config.yaml: |-
     redis_host: {{ .Values.redis.host }}
+    redis_password: {{ .Values.redis.password }}
     openai_key: {{ .Values.openai.apikey }}
     max_span_raw_data_length: {{ .Values.maxspanrawdatalength }}
     postgres_host: {{ .Values.postgres.host }}
-    pinecone_index_key : {{ .Values.pinecone.indexkey }}
-    pinecone_api_key : {{ .Values.pinecone.apikey }}
+    pinecone_key : {{ .Values.pinecone.apikey }}
+    pinecone_index : {{ .Values.pinecone.index }}
     axon_host: {{ .Values.axon.host }}
-    pinecone_environment : {{ .Values.pinecone.environment }}
+    pincone_env : {{ .Values.pinecone.environment }}
     postgres_port : {{ .Values.postgres.port }}
     postgres_db : {{ .Values.postgres.db }}
     postgres_user : {{ .Values.postgres.user }}
-    postgres_pass : {{ .Values.postgres.pass }}
+    postgres_password : {{ .Values.postgres.password }}
 ---
 apiVersion: v1
 kind: Service

@@ -13,9 +13,9 @@ class Config:
     def _load_config(self):
         try:
             with open(self.file_path, 'r') as file:
-                config_dict = yaml.safe_load(file)
-                config_dict.update(self.secrets['payload'])
-                return config_dict
+                config_data = yaml.safe_load(file)
+                config_data.update(self.secrets['payload'])
+                return config_data
         except Exception as e:
             raise ValueError(f"Error loading config file: {e}")
 
@@ -36,7 +36,7 @@ class Config:
     
     def fetch_secrets_from_server(self):
         try:
-            response = requests.get("http://<operatorUrl:port>/i/configuration?svc=zk-gpt")
+            response = requests.get("http://zk-operator.zk-client.svc.clustor.local:8472/i/configuration?svc=zk-gpt")
             response.raise_for_status()  # Raise an exception for non-200 status codes
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -60,7 +60,7 @@ class Config:
         if self.secrets is None:
             raise Exception("Unable to fetch zk-llm Secrets from Server") 
 
-
+    # written this in future we can levarage 
     def job(self):
         secrets = self.fetch_secrets_with_retry()
         if secrets:

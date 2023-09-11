@@ -4,15 +4,15 @@ import json
 import redis
 import psycopg2
 
-axon_host = config.configuration.get("ZK_AXON_HOST", "localhost:8080")
-redis_host = config.configuration.get("ZK_REDIS_HOST", "localhost")
-redis_db = config.configuration.get("ZK_REDIS_DB", 6)
-redis_pass = config.configuration.get("ZK_REDIS_PASSWORD", "")
-postgres_host  = config.configuration.get("POSTGRES_HOST", "localhost")
-postgres_port  = config.configuration.get("POSTGRES_PORT", "5432")
-postgres_db = config.configuration.get("POSTGRES_DB", "pl")
-postgres_user = config.configuration.get("POSTGRES_USER", "postgres")
-postgres_pass = config.configuration.get("POSTGRES_PASSWORD", "eo1Mgtm6HI")
+axon_host = config.configuration.get("axon_host", "localhost:8080")
+redis_host = config.configuration.get("redis_host", "localhost")
+redis_db = config.configuration.get("redis_db", 6)
+redis_pass = config.configuration.get("redis_password", "")
+postgres_host  = config.configuration.get("postgres_host", "localhost")
+postgres_port  = config.configuration.get("postgres_port", "5432")
+postgres_db = config.configuration.get("postgres_db", "pl")
+postgres_user = config.configuration.get("postgres_user", "postgres")
+postgres_pass = config.configuration.get("postgres_password", "")
 
 
 def getIssueSummary(issue_id):

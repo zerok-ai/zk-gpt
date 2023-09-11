@@ -31,11 +31,12 @@ postgres:
 redis: 
   host: "redis-master.zk-client.svc.cluster.local"
   port: "6379"
+  password: ""
 
 pinecone:
   environment: ""
   apikey: "" 
-  indexkey: "" 
+  index: "" 
 
 maxspanrawdatalength: 1000
 

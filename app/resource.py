@@ -9,7 +9,7 @@ import config
 GPTServiceProvider = gpt.GPTServiceProvider()
 GptInferencePineconeVectorDb = gptInferencePinecone.GptInferencePineconeVectorDb()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
-langChainInference = gptLangchianInference.LangChainInference
+# langChainInference = gptLangchianInference.LangChainInference
 
 def getScenarioSummary(scenario_id):
     scenario_def = client.getScenario(scenario_id)
@@ -199,7 +199,7 @@ def getAllIssueInferences(issue_id,limit,offset):
     userInferences = client.getAllUserIssueInferences(issue_id,limit,offset)
     return userInferences
 
-def getZerokIssueIncidentInference(issue_id,incident_id):
+# def getZerokIssueIncidentInference(issue_id,incident_id):
     print("Starting the zerok inference for  issue id :{issue_id}")
 
     data = {

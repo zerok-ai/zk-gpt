@@ -81,7 +81,7 @@ def get_all_issue_inferences(issue_id):
 #Load config and Fetch the secrets from the server  
 def fetch_secrets_and_load_config():
     try:
-        config.Config("config/config.yaml")
+        config.configuration
         # If successful, return True
         return True
     except Exception as e:

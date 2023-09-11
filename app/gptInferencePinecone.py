@@ -10,9 +10,9 @@ import client
 import config
 
 openai_key = config.configuration.get("openai_key", "")
-pinecone_index_key = config.configuration.get("pinecone_index_key","zk-index-prod")
-pinecone_api_key=config.configuration.get("pinecone_api_key","cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2")
-pinecone_environment=config.configuration.get("pinecone_environment","us-west4-gcp-free")
+pinecone_index_key = config.configuration.get("pinecone_index","zk-index-prod")
+pinecone_api_key=config.configuration.get("pinecone_key","cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2")
+pinecone_environment=config.configuration.get("pinecone_env","us-west4-gcp-free")
 
 class GptInferencePineconeVectorDb:
     def __init__ (self): 
