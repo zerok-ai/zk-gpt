@@ -36,9 +36,15 @@ class Config:
     
     def fetch_secrets_from_server(self):
         try:
-            response = requests.get("http://zk-operator.zk-client.svc.clustor.local:8472/i/configuration?svc=zk-gpt")
-            response.raise_for_status()  # Raise an exception for non-200 status codes
-            return response.json()
+            # response = requests.get("http://zk-operator.zk-client.svc.clustor.local:8472/i/configuration?svc=zk-gpt")
+            # response.raise_for_status()  # Raise an exception for non-200 status codes
+            # return response.json()
+            return {"payload" :{
+                "openai_key": "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",
+                "pinecone_key": "cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2",
+                "pinecone_index": "zk-index-prod",
+                "pinecone_env": "us-west4-gcp-free"
+            }}
         except requests.exceptions.RequestException as e:
             print(f"Secrets Fetch failed with error: {str(e)}")
             return None
