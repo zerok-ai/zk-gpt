@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: zk-gpt
-          image: us-west1-docker.pkg.dev/zerok-dev/zk-client/zk-gpt:dev
+          image: us-west1-docker.pkg.dev/zerok-dev/stage/zk-gpt:pinecone-inference
           imagePullPolicy: Always
           volumeMounts:
             - name: zk-gpt-config-volume

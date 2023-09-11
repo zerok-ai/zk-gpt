@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zk-gpt.fullname" . }}
+  labels:
+  {{- include "zk-gpt.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.zkGpt.replicas }}
+  selector:
+    matchLabels:
+      app: zk-gpt
+    {{- include "zk-gpt.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: zk-gpt
+      {{- include "zk-gpt.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - command:
+            - sh
+            - -c
+            - 'set -xe; URL="${PROTOCOL}://${SERVICE_NAME}:${SERVICE_PORT}${HEALTH_PATH}";
+              until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ];
+              do echo "waiting for ${URL}"; sleep 2; done;'
+          name: operator-wait
+          env:
+            - name: SERVICE_NAME
+              value: zk-operator.zk-client.svc.cluster.local
+            - name: SERVICE_PORT
+              value: "8081"
+            - name: PROTOCOL
+              value: http
+            - name: HEALTH_PATH
+              value: "/healthz"
+          image: "{{ .Values.initImage.repo}}:{{ .Values.initImage.tag}}"
+          imagePullPolicy: IfNotPresent
+          resources: { }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: "{{ .Values.global.dockerBase }}/{{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        name: zk-gpt
+        ports:
+        - containerPort: 80
+        resources: {{- toYaml .Values.zkGpt.resources | nindent 10 }}
+        volumeMounts:
+        - mountPath: /app/config
+          name: zk-gpt-config-volume
+      volumes:
+      - configMap:
+          name: {{ include "zk-gpt.fullname" . }}
+        name: zk-gpt-config-volume

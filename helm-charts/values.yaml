@@ -1,0 +1,51 @@
+global:
+  dockerBase: "us-west1-docker.pkg.dev/zerok-dev/zk-client"
+
+kubernetesClusterDomain: cluster.local
+zkGpt:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  replicas: 1
+  type: ClusterIP
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+axon:
+  host: "zk-axon.zk-client.svc.cluster.local"
+
+postgres:
+  host: "postgres.zk-client.svc.cluster.local"
+  user: "postgres"
+  port: "5432"
+  db: "pl"
+  pass: "eo1Mgtm6HI"
+
+redis: 
+  host: "redis-master.zk-client.svc.cluster.local"
+  port: "6379"
+
+pinecone:
+  environment: "us-west4-gcp-free"
+  apikey: "cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2" 
+  indexkey: "zk-index-prod" 
+
+maxspanrawdatalength: 1000
+
+openai:
+  apikey: "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"
+
+replicaCount: 1
+image:
+  repo: "zk-gpt"
+  tag: latest
+  pullPolicy: IfNotPresent
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80

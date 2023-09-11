@@ -1,12 +1,13 @@
 import json
-
+from flask import jsonify
 import client
 import gpt
+import gptInferencePinecone
 import config
 
 GPTServiceProvider = gpt.GPTServiceProvider()
+GptInferencePineconeVectorDb = gptInferencePinecone.GptInferencePineconeVectorDb()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
-
 
 def getScenarioSummary(scenario_id):
     scenario_def = client.getScenario(scenario_id)
@@ -42,24 +43,19 @@ def getIssueSummary(issue_id):
 
     return answer
 
-
 def getAndSanitizeSpansMap(issue_id, incident_id):
     spansMap = client.getSpansMap(issue_id, incident_id)
     for span_id in spansMap:
         spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
-        if len(spanRawData["request_payload"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["request_payload"] = spanRawData["request_payload"][:MAX_PAYLOAD_SIZE]
-        if len(spanRawData["response_payload"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["response_payload"] = spanRawData["response_payload"][:MAX_PAYLOAD_SIZE]
+        if len(spanRawData["req_body"]) > MAX_PAYLOAD_SIZE:
+            spanRawData["req_body"] = spanRawData["req_body"][:MAX_PAYLOAD_SIZE]
+        if len(spanRawData["resp_body"]) > MAX_PAYLOAD_SIZE:
+            spanRawData["resp_body"] = spanRawData["resp_body"][:MAX_PAYLOAD_SIZE]
         spansMap[span_id].update(spanRawData)
 
     filteredSpansMap = dict()
     for spanId in spansMap:
-        # remove error key from spanMap
-        del spansMap[spanId]["error"]
-
         span = spansMap[spanId]
-        span["span_id"] = spanId
         # remove exception span from spanMap
         if str(span["protocol"]).upper() == "EXCEPTION":
             parentSpanId = span["parent_span_id"]
@@ -92,6 +88,21 @@ def getIncidentRCA(issue_id, incident_id):
     gptInstance.setContext('''Service Name: order, pods: 1/1, target: http://order.sofa-shop-mysql.svc.cluster.local''')
     gptInstance.setContext('''Service Name: product, pods: 1/1, target: http://product.sofa-shop-mysql.svc.cluster.local''')
 
+    gptInstance.setContext(
+        "The API is deployed in a kubernetes cluster whose state is defined as follows:")
+    gptInstance.setContext("namespace: sofa-shop-mysql.")
+    gptInstance.setContext("Services: (output of kubectl describe services -n sofa-shop-mysql")
+
+    # Uncomment this if the span data for availability service is available.
+    # gptInstance.setContext('''Service Name: availability, pods: 0/0, target:  http://availability.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext('''Service Name: demo-shop-service, pods: 1/1, target: http://demo-shop-service.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext(''' Service Name: inventory, pods: 1/1, target: http://inventory.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext('''Service Name: order, pods: 1/1, target: http://order.sofa-shop-mysql.svc.cluster.local''')
+    # gptInstance.setContext('''Service Name: product, pods: 1/1, target: http://product.sofa-shop-mysql.svc.cluster.local''')
+
+    gptInstance.setContext(
+        '''If the response code is 502, attribute the issue to unavailable pods in 'availability' service in 'sofa-shop' namespace.''')
+    
 
     gptInstance.setContext(
         "For the following json array containing request and response payloads for all spans for a trace, "
@@ -127,3 +138,25 @@ def getIncidentQuery(issue_id, incident_id, query):
     print("A:" + answer)
 
     return answer
+
+def getIssueObservation(issue_id,query):
+    if not client.findIfIssueIsPresentInDb(issue_id): 
+        GptInferencePineconeVectorDb.vectorizeIncidentAndPushtoVectorDb(issue_id)
+
+    return GptInferencePineconeVectorDb.getGptInferencesForQuery(issue_id,query,0.3,30)
+    
+def getIssueObservationWithParams(issue_id, query,temperature,topK,vectorEmbeddingModel,gptModel,requestId):
+    if not client.findIfIssueIsPresentInDb(issue_id):
+        GptInferencePineconeVectorDb.vectorizeIncidentAndPushtoVectorDb(issue_id)
+    response =  GptInferencePineconeVectorDb.getGptInferencesForQuery(issue_id,query,temperature,topK)    
+    client.insertUserIssueInference(issue_id, query,temperature,topK,vectorEmbeddingModel,gptModel,requestId,response)
+    return response 
+    
+def updateUserIssueObservationFeedback(requestId,feedback,score): 
+    print("Updating the User Feedback for the infernce with requestId : {requsetId}")
+    client.updateUserInferenceFeedback(requestId,feedback,score)
+
+def getAllIssueInferences(issue_id,limit,offset): 
+    print("Fetching all the inferences for the given issue id :{issue_id}")
+    userInferences = client.getAllUserIssueInferences(issue_id,limit,offset)
+    return userInferences

@@ -17,22 +17,16 @@ on:
 env:
   ENV: ${{ github.event.inputs.ENV }}
   DOCKER_TAG: ${{ github.event.inputs.DOCKER_TAG }}
-  GOOS: ${{ vars.GOOS }}
-  GOARCH: ${{ vars.GOARCH }}
-  CGO_ENABLED: ${{ vars.CGO_ENABLED }}
   GKE_SA_KEY: ${{ secrets.GKE_SA_KEY }}
   DOCKER_REG: ${{ vars.DOCKER_REG }}
   PROJECT_ID: ${{ vars.PROJECT_ID }}
   DOCKER_REPO: ${{ vars.DOCKER_REPO }}
   APP_NAME: ${{ vars.APP_NAME }}
-  GOPRIVATE: ${{ vars.GOPRIVATE }}
-  TOKEN: ${{ secrets.GITPAT }}
   VERSION: ${{ inputs.VERSION }}
   ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
   DOCKER_IDENTIFIER: ${{ inputs.DOCKER_IDENTIFIER }}
 
 jobs:
-
   print-envs:
     runs-on: zk-self-hosted
     environment:

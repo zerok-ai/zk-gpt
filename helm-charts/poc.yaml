@@ -1,0 +1,65 @@
+global:
+  dockerBase: "us-west1-docker.pkg.dev/zerok-dev/zk-client"
+
+kubernetesClusterDomain: cluster.local
+zkGpt:
+  # configYaml: |-
+  #   host: {{ .Values.zkGpt.host }}
+  #   redis_host: {{ .Values.redis.host }}
+  #   openai_key: {{ .Values.openai.apikey }}
+  #   max_span_raw_data_length: {{ .Values.maxspanrawdatalength }}
+  #   postgres_host: {{ .Values.postgres.host }}
+  #   pinecone_index_key : {{ .Values.pinecone.indexkey }}
+  #   pinecone_api_key : {{ .Values.pinecone.apikey }}
+  #   axon_host: {{ .Values.axon.host }}
+  #   pinecone_environment : {{ .Values.pinecone.env }}
+  #   postgres_port : {{ .Values.postgres.port }}
+  #   postgres_db : {{ .Values.postgres.db }}
+  #   postgres_user : {{ .Values.postgres.user }}
+  #   postgres_pass : {{ .Values.postgres.pass }}
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  replicas: 1
+  type: ClusterIP
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+axon:
+  host: ""
+
+postgres:
+  host: ""
+  user: ""
+  port: ""
+  db: ""
+  pass: ""
+
+redis: 
+  host: ""
+  port: ""
+
+pinecone:
+  env: ""
+  apikey: "" 
+  indexkey: "" 
+
+maxspanrawdatalength: ""
+
+openai:
+  api: ""
+
+replicaCount: 1
+image:
+  repo: "zk-gpt"
+  tag: latest
+  pullPolicy: IfNotPresent
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
