@@ -134,6 +134,8 @@ class IssueVectorization:
                 'source': str(issue),
                 'incident-id': str(incident),
                 'issue-title': "Issue_incident : {}_{}".format(str(issue),str(incident)) 
+                # 'cluster': 
+                # 'clustomer-id'
             }
 
             # issue data creation
@@ -192,7 +194,7 @@ class IssueVectorization:
         vectorstore = Pinecone(
             pinecone.Index(self.index_name), self.embed.embed_query, text_field
         )
-        metadata_filter = {"issue-id": issue,"source" : issue}
+        metadata_filter = {"issue-id": {'$eq': issue},"source" : {'$eq': issue}}
         vectorstore.similarity_search(
             query,  # our search query
             k=k, # return k most relevant docs
