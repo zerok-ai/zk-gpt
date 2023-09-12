@@ -2,8 +2,6 @@ from langchain.llms import OpenAI
 import client
 import gpt
 import config
-from langchain.prompts import ChatPromptTemplate
-from langchain.prompts.chat import SystemMessage, HumanMessagePromptTemplate
 import gptLangchianInference
 import pineconeInteraction
 from clientServices import postgresClient
@@ -35,7 +33,7 @@ def getScenarioSummary(scenario_id):
 def getIssueSummary(issue_id):
     issueSummary = client.getIssueSummary(issue_id)
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
-
+    
     gptInstance.setContext(
         "An issue is defined as set of attributes separated by `¦` character. this convention is not to be part of summary")
     gptInstance.setContext("the issue in this case is " + str(issueSummary["issue_title"]))
@@ -123,8 +121,6 @@ def getIncidentRCA(issue_id, incident_id):
 
     gptInstance.setContext("Following are the spans:")
 
-    # lang chain integration
-
     spansMap = getAndSanitizeSpansMap(issue_id, incident_id)
     spanList = []
     # provide spans as context
@@ -136,40 +132,6 @@ def getIncidentRCA(issue_id, incident_id):
 
     question = "Summarise the root cause of the issue in above trace in 2 lines. including exception, infra or payload details needed to explain the cause of issue."
     answer = gptInstance.findAnswers(question)
-
-    template = ChatPromptTemplate.from_messages(
-        [
-            SystemMessage(
-                content=(
-                    "We are using a json array to represent a network traces and payload data across different protocols."
-                    "The API is deployed in a kubernetes cluster whose state is defined as follows:"
-                    "namespace: sofa-shop-mysql."
-                    "Services: (output of kubectl describe services -n sofa-shop-mysql"
-                    '''Service Name: availability, pods: 0/0, target:  http://availability.sofa-shop-mysql.svc.cluster.local'''
-                    '''Service Name: demo-shop-service, pods: 1/1, target: http://demo-shop-service.sofa-shop-mysql.svc.cluster.local'''
-                    ''' Service Name: inventory, pods: 1/1, target: http://inventory.sofa-shop-mysql.svc.cluster.local'''
-                    '''Service Name: order, pods: 1/1, target: http://order.sofa-shop-mysql.svc.cluster.local'''
-                    '''Service Name: product, pods: 1/1, target: http://product.sofa-shop-mysql.svc.cluster.local'''
-                    '''If the response code is 502, attribute the issue to unavailable pods in 'availability' service in 'sofa-shop' namespace.'''
-                    "For the following json array containing request and response payloads for all spans for a trace, "
-                    "we will need to find the root cause"
-                    "The request and response payloads are truncated to 1000 characters for brevity."
-                    "Following are the spans:"
-                    "{spans}"
-
-                )
-            ),
-            HumanMessagePromptTemplate.from_template("{text}"),
-        ]
-    )
-
-    llm = OpenAI(model_name="gpt-3.5-turbo")
-    res = llm(template.format_messages(spans=spanList,
-                                       text='Summarise the root cause of the issue in above trace in 2 lines. including exception, infra or payload details needed to explain the cause of issue.'))
-
-    print("\n --------------------LANGCHAIN---------------------------------------")
-    print(res)
-    print("\n ------------------------------------------------------------------------------------------------")
 
     print("Q:" + question)
     print("A:" + answer)

@@ -19,6 +19,11 @@ def get_issue(issue_id):
 
 @app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['GET'])
 def get_incident(issue_id, incident_id):
+    rca = resource.getIncidentRCA(issue_id, incident_id)
+    return jsonify({"payload": {"rca": rca}})
+
+@app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>/langchainInference', methods=['GET'])
+def get_incident(issue_id, incident_id):
     regenerateRca = bool(request.args.get('regenerateRca', default=False))
     rca = resource.getIssueIncidentRca(issue_id, incident_id,regenerateRca)
     return jsonify({"payload": {"rca": rca}})
