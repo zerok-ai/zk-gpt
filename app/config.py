@@ -38,15 +38,21 @@ class Config:
 
     def fetch_secrets_from_server(self):
         try:
-            response = requests.get(contants.OPERATOR_SECRETS_URL)
-            response.raise_for_status()  # Raise an exception for non-200 status codes
-            response_data = response.json
-            data = response_data['payload']
+            # response = requests.get(contants.OPERATOR_SECRETS_URL)
+            # response.raise_for_status()  # Raise an exception for non-200 status codes
+            # response_data = response.json
+            # data = response_data['payload']
+            # return {
+            #     "openai_key": data['openAI_key'],
+            #     "pinecone_key": data['pinecone_key'],
+            #     "pinecone_index": data['pinecone_index'],
+            #     "pinecone_env": data['pinecone_env']
+            # }
             return {
-                "openai_key": data['openAI_key'],
-                "pinecone_key": data['pinecone_key'],
-                "pinecone_index": data['pinecone_index'],
-                "pinecone_env": data['pinecone_env']
+                "openai_key": "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",
+                "pinecone_key": "cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2",
+                "pinecone_index": "zk-index-prod",
+                "pinecone_env": "us-west4-gcp-free"
             }
         except requests.exceptions.RequestException as e:
             print(f"Secrets Fetch failed with error: {str(e)}")
