@@ -1,4 +1,5 @@
-from langchain. prompts import PromptTemplate
+from langchain.prompts import PromptTemplate
+
 
 class PromptFactory():
     issue_summary = """You are a backend developer AI assistant. Your task is to figure out why an issue \
@@ -18,7 +19,7 @@ class PromptFactory():
     The issue here is defined as {exception_summary}. We have collected spans data of the trace of the given issue  \
     and will feed them to you one by one as {trace_data}.
     Come up with the likeliest cause based on the spans data presented to you. and brief the sources and destinations and spans that are likely causing the issue.
-    """ 
+    """
 
     request_response_payload = """You are a backend developer AI assistant.
     Your task is to figure out why an issue happened and present it in a concise manner.
@@ -38,7 +39,7 @@ class PromptFactory():
     cpu_usage_events = """<explain about before summary>
     {input} <brief about the current data> {custom_data}"""
 
-    log_data= """<explain about before summary>
+    log_data = """<explain about before summary>
     {input} <brief about the current data> {custom_data}"""
 
     memory_usage_events = """<explain about before summary>
@@ -49,30 +50,30 @@ class PromptFactory():
             'name': 'issue_summary',
             'description': 'Template to summarise the give issue',
             'prompt_template': issue_summary,
-            "input_varaibles" : ["issue_data","issue_prompt"],
-            "output_variables" : "issue_summary"
+            "input_varaibles": ["issue_data", "issue_prompt"],
+            "output_variables": "issue_summary"
         },
         {
             'name': 'exception_data',
             'description': 'Template used to inference the issue using exception data',
             'prompt_template': exception_data,
             "input_variables": ["exception_data"],
-            "input_varaibles" : ["issue_summary","exception_data"],
-            "output_variables" : "exception_summary"
+            "input_varaibles": ["issue_summary", "exception_data"],
+            "output_variables": "exception_summary"
         },
         {
             'name': 'trace_data',
             'description': 'Template used to inference the issue using trace data',
             'prompt_template': trace_data,
-            "input_varaibles" : ["exception_summary","trace_data"],
-            "output_variables" : "trace_summary"
+            "input_varaibles": ["exception_summary", "trace_data"],
+            "output_variables": "trace_summary"
         },
         {
             'name': 'request_response_payload',
             'description': 'Template used to inference the issue using request response data',
             'prompt_template': request_response_payload,
-            "input_varaibles" : ["trace_summary","req_res_data"],
-            "output_variables" : "final_summary"
+            "input_varaibles": ["trace_summary", "req_res_data"],
+            "output_variables": "final_summary"
         }
         # ,
         # {
@@ -109,17 +110,18 @@ class PromptFactory():
 
     def getAllPrompts(self):
         return self.prompt_infos
-    
+
     def generatePromptsForSequentialChain(self):
         print("")
         prompts = []
         output_keys = []
-        
+
         prompt_templates = self.getAllPrompts()
         for prompt_tem in prompt_templates:
             prompt = prompt_tem['prompt_template']
             print("prompt : {}".format(prompt))
-            prompt_template = PromptTemplate(input_variables=prompt_tem['input_varaibles'], template=prompt_tem['prompt_template'])
+            prompt_template = PromptTemplate(input_variables=prompt_tem['input_varaibles'],
+                                             template=prompt_tem['prompt_template'])
             prompts.append(prompt_template)
             output_keys.append(prompt_tem['output_variables'])
-        return prompts,output_keys
+        return prompts, output_keys
