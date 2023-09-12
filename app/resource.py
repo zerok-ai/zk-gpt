@@ -8,10 +8,12 @@ import config
 from langchain.prompts import ChatPromptTemplate
 from langchain.prompts.chat import SystemMessage, HumanMessagePromptTemplate
 from langchain.chat_models import ChatOpenAI
+import gptLangchianInference
 
 GPTServiceProvider = gpt.GPTServiceProvider()
 GptInferencePineconeVectorDb = gptInferencePinecone.GptInferencePineconeVectorDb()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
+langChainInferenceProvider = gptLangchianInference.LangChainInference()
 
 def getScenarioSummary(scenario_id):
     scenario_def = client.getScenario(scenario_id)
@@ -75,7 +77,6 @@ def getAndSanitizeSpansMap(issue_id, incident_id):
 
 
 def getIncidentRCA(issue_id, incident_id):
-
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
 
     gptInstance.setContext(
@@ -203,3 +204,45 @@ def getAllIssueInferences(issue_id,limit,offset):
     print("Fetching all the inferences for the given issue id :{issue_id}")
     userInferences = client.getAllUserIssueInferences(issue_id,limit,offset)
     return userInferences
+
+
+def getLangchainInference(issue_id,incident_id):
+    issueData  = dict()
+    issueSummary = client.getIssueSummary(issue_id)
+    spansMap = client.getSpansMap(issue_id, incident_id)
+    exceptionMap = []
+    reqResPayloadMap = []
+    for span_id in spansMap:
+        spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
+        spansMap[span_id].update(spanRawData)
+
+    filteredSpansMap = dict()
+    for spanId in spansMap:
+        # remove error key from spanMap
+        del spansMap[spanId]["error"]
+
+        span = spansMap[spanId]
+        span["span_id"] = spanId
+        # remove exception span from spanMap
+        if str(span["protocol"]).upper() == "EXCEPTION":
+            parentSpanId = span["parent_span_id"]
+            if parentSpanId in spansMap:
+                spansMap[parentSpanId]["exception"] = span["req_body"]
+                exceptionMap.append(span["req_body"])
+                filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
+        else:
+            filteredSpansMap[spanId] = span
+    
+    for spanId in filteredSpansMap:
+        span = spansMap[spanId]
+        reqResPayloadMap.append({"request_payload" : span['req_body'], "span" : spanId})
+        reqResPayloadMap.append({"response_payload" : span['resp_body'], "span" : spanId})
+    issueData['issue_summary'] = issueSummary
+    issueData['trace_data'] = filteredSpansMap
+    issueData['exception_data'] = exceptionMap
+    issueData['request_response_payload'] = reqResPayloadMap
+    custom_data = {"issue_data":str(issueSummary),"trace_data": str(filteredSpansMap),"exception_data" : str(exceptionMap), "req_res_data" : str(reqResPayloadMap), "issue_prompt" : "You are a backend developer AI assistant. Your task is to figure out why an issue happened and present it in a concise manner."}
+
+    langchianInference = langChainInferenceProvider.getGPTLangchainInference(issue_id,incident_id,custom_data)
+
+    return langchianInference
