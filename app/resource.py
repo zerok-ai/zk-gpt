@@ -9,11 +9,14 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.prompts.chat import SystemMessage, HumanMessagePromptTemplate
 from langchain.chat_models import ChatOpenAI
 import gptLangchianInference
+import pineconeInteraction
+from clientServices import postgresClient
 
 GPTServiceProvider = gpt.GPTServiceProvider()
-GptInferencePineconeVectorDb = gptInferencePinecone.GptInferencePineconeVectorDb()
+# GptInferencePineconeVectorDb = gptInferencePinecone.GptInferencePineconeVectorDb()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
+pineconeInteractionProvider = pineconeInteraction.PineconeInteraction()
 
 def getScenarioSummary(scenario_id):
     scenario_def = client.getScenario(scenario_id)
@@ -31,7 +34,6 @@ def getScenarioSummary(scenario_id):
     answer = gptInstance.findAnswers(question)
 
     return answer
-
 
 def getIssueSummary(issue_id):
     issueSummary = client.getIssueSummary(issue_id)
@@ -74,7 +76,6 @@ def getAndSanitizeSpansMap(issue_id, incident_id):
     print(filteredSpansMap)
 
     return filteredSpansMap
-
 
 def getIncidentRCA(issue_id, incident_id):
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
@@ -170,7 +171,6 @@ def getIncidentRCA(issue_id, incident_id):
     print("A:" + answer)
     return answer
 
-
 def getIncidentQuery(issue_id, incident_id, query):
     if not GPTServiceProvider.hasHandler(issue_id + "-" + incident_id):
         return "Incident not found."
@@ -184,30 +184,72 @@ def getIncidentQuery(issue_id, incident_id, query):
     return answer
 
 def getIssueObservation(issue_id,query):
-    if not client.findIfIssueIsPresentInDb(issue_id): 
-        GptInferencePineconeVectorDb.vectorizeIncidentAndPushtoVectorDb(issue_id)
+    if not postgresClient.findIfIssueIsPresentInDb(issue_id): 
+        pineconeInteractionProvider.vectorizeIssueAndPushtoPineconeDb(issue_id)
 
-    return GptInferencePineconeVectorDb.getGptInferencesForQuery(issue_id,query,0.3,30)
+    return pineconeInteractionProvider.getGptInferencesForQueryCustomData(issue_id,query,0.3,30)
     
 def getIssueObservationWithParams(issue_id, query,temperature,topK,vectorEmbeddingModel,gptModel,requestId):
-    if not client.findIfIssueIsPresentInDb(issue_id):
-        GptInferencePineconeVectorDb.vectorizeIncidentAndPushtoVectorDb(issue_id)
-    response =  GptInferencePineconeVectorDb.getGptInferencesForQuery(issue_id,query,temperature,topK)    
-    client.insertUserIssueInference(issue_id, query,temperature,topK,vectorEmbeddingModel,gptModel,requestId,response)
+    if not postgresClient.findIfIssueIsPresentInDb(issue_id):
+        pineconeInteractionProvider.vectorizeIssueAndPushtoPineconeDb(issue_id)
+    response =  pineconeInteractionProvider.getGptInferencesForQueryCustomData(issue_id,query,temperature,topK)    
+    postgresClient.insertUserIssueInference(issue_id, query,temperature,topK,vectorEmbeddingModel,gptModel,requestId,response)
     return response 
+
     
 def updateUserIssueObservationFeedback(requestId,feedback,score): 
     print("Updating the User Feedback for the infernce with requestId : {requsetId}")
-    client.updateUserInferenceFeedback(requestId,feedback,score)
+    postgresClient.updateUserInferenceFeedback(requestId,feedback,score)
 
 def getAllIssueInferences(issue_id,limit,offset): 
     print("Fetching all the inferences for the given issue id :{issue_id}")
     userInferences = client.getAllUserIssueInferences(issue_id,limit,offset)
     return userInferences
 
+def getIssueIncidentRca(issue_id,incident_id,regenerateRca):
+    # This call is at issue level only not at incident level
+    # check in DB if present just send.
+    if regenerateRca: 
+        isRca, answer = postgresClient.checkIfRcaAlreadyGenerated(issue_id,incident_id)
+        print("Got request to regenerate RCA for issue : {} and incident: {}".format(issue_id,incident_id))
+        # check dedup request in DB
+        if isRca:
+            return answer
+        else: 
+            # generate RCA and sned the respone and store in DB and pinecone
+            rca = generateAndStoreRca(issue_id,incident_id) #check update or insert logic also
+            return rca
+    else: 
+        # regenerateRca = false check if rca already calculated for the issue and send accordindly
+        answer = postgresClient.checkIfRcaAlreadyPresent(issue_id)
+        if answer is None:
+            rca = generateAndStoreRca(issue_id,incident_id) #check update or insert logic also
+            return rca
+        else: 
+            return answer
+
+def generateAndStoreRca(issue_id,incident_id):
+    # getting langchain inferences
+    custom_data,langchianInference = getLangchainInference(issue_id,incident_id)
+    rca = langchianInference['final_summary']
+    # push data to pinecone 
+    pineconeIssueData  = dict()
+    pineconeIssueData['issue_data'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"data","issue",custom_data['issue_data'],"default","default")
+    pineconeIssueData['trace_data'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"data","trace",custom_data['trace_data'],"default","default")
+    pineconeIssueData['exception_data'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"data","exception",custom_data['exception_data'],"default","default")
+    pineconeIssueData['req_res_data'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"data","req_res",custom_data['req_res_data'],"default","default")
+    pineconeIssueData['final_summary'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"summary","final",langchianInference['final_summary'],"default","default")
+    pineconeIssueData['exception_summary'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"summary","exception",langchianInference['exception_summary'],"default","default")
+    pineconeIssueData['trace_summary'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"summary","trace",langchianInference['trace_summary'],"default","default")
+    pineconeIssueData['issue_summary'] = pineconeInteractionProvider.createPineconeData(issue_id,incident_id,"summary","issue",langchianInference['issue_summary'],"default","default")
+    data_list = [value for value in pineconeIssueData.values()]
+    pineconeInteractionProvider.vectorizeDataAndPushtoPineconeDB(issue_id,incident_id,data_list)
+    # store in DB
+    postgresClient.insertOrUpdateRcaToDB(issue_id,incident_id,rca)
+    return rca
 
 def getLangchainInference(issue_id,incident_id):
-    issueData  = dict()
+    # fetch all the data required for langchian inference
     issueSummary = client.getIssueSummary(issue_id)
     spansMap = client.getSpansMap(issue_id, incident_id)
     exceptionMap = []
@@ -237,12 +279,11 @@ def getLangchainInference(issue_id,incident_id):
         span = spansMap[spanId]
         reqResPayloadMap.append({"request_payload" : span['req_body'], "span" : spanId})
         reqResPayloadMap.append({"response_payload" : span['resp_body'], "span" : spanId})
-    issueData['issue_summary'] = issueSummary
-    issueData['trace_data'] = filteredSpansMap
-    issueData['exception_data'] = exceptionMap
-    issueData['request_response_payload'] = reqResPayloadMap
+    
+    # create input variabled for langchain
     custom_data = {"issue_data":str(issueSummary),"trace_data": str(filteredSpansMap),"exception_data" : str(exceptionMap), "req_res_data" : str(reqResPayloadMap), "issue_prompt" : "You are a backend developer AI assistant. Your task is to figure out why an issue happened and present it in a concise manner."}
 
+    # get langchain inference
     langchianInference = langChainInferenceProvider.getGPTLangchainInference(issue_id,incident_id,custom_data)
 
-    return langchianInference
+    return custom_data,langchianInference

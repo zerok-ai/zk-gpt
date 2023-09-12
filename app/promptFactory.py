@@ -17,9 +17,8 @@ class PromptFactory():
     Your task is to figure out why an issue happened and present it in a concise manner.
     The issue here is defined as {exception_summary}. We have collected spans data of the trace of the given issue  \
     and will feed them to you one by one as {trace_data}.
-    Come up with the likeliest cause based on the spans data presented to you. and brief the sources and destinations and spans that are likely causing the issue"""
-
-    
+    Come up with the likeliest cause based on the spans data presented to you. and brief the sources and destinations and spans that are likely causing the issue.
+    """ 
 
     request_response_payload = """You are a backend developer AI assistant.
     Your task is to figure out why an issue happened and present it in a concise manner.
@@ -108,7 +107,6 @@ class PromptFactory():
         # }
     ]
 
-
     def getAllPrompts(self):
         return self.prompt_infos
     
@@ -125,10 +123,3 @@ class PromptFactory():
             prompts.append(prompt_template)
             output_keys.append(prompt_tem['output_variables'])
         return prompts,output_keys
-
-
-
-    def createGtpContextUsingTemplate(self,dict): 
-        return ""
-
-

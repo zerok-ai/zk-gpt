@@ -3,7 +3,6 @@ from langchain.chains import LLMChain , SimpleSequentialChain
 import openai
 import config
 
-
 openai_api_key = config.configuration.get("openai_key", "")
 openai__model = config.configuration.get("openai__model", "")
 
@@ -19,7 +18,6 @@ class LangChainMultichainFactory():
         try: 
             sequential_chains = []
             for i,prompt in enumerate(prompts):
-                print("prompt : {} \n".format(prompt))
                 chain = self.generateLangchainChain(prompt,output_keys[i])
                 sequential_chains.append(chain)
             return sequential_chains
