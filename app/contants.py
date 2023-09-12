@@ -1,0 +1,1 @@
+OPERATOR_SECRETS_URL = "http://zk-operator.zk-client.svc.clustor.local/i/configuration?svc=zk-gpt"
