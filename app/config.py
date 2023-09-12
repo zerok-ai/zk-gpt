@@ -2,6 +2,7 @@ import yaml
 import os
 import requests
 import time
+import contants
 
 class Config:
     def __init__(self, file_path):
@@ -14,7 +15,7 @@ class Config:
         try:
             with open(self.file_path, 'r') as file:
                 config_data = yaml.safe_load(file)
-                config_data.update(self.secrets['payload'])
+                config_data.update(self.secrets)
                 return config_data
         except Exception as e:
             raise ValueError(f"Error loading config file: {e}")
@@ -36,15 +37,15 @@ class Config:
     
     def fetch_secrets_from_server(self):
         try:
-            # response = requests.get("http://zk-operator.zk-client.svc.clustor.local:8472/i/configuration?svc=zk-gpt")
-            # response.raise_for_status()  # Raise an exception for non-200 status codes
-            # return response.json()
-            return {"payload" :{
-                "openai_key": "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",
-                "pinecone_key": "cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2",
-                "pinecone_index": "zk-index-prod",
-                "pinecone_env": "us-west4-gcp-free"
-            }}
+            response = requests.get(contants.OPERATOR_SECRETS_URL)
+            response.raise_for_status()  # Raise an exception for non-200 status codes
+            response_data = response.json
+            return {
+                "openai_key": response_data['openAI_key'],
+                "pinecone_key": response_data['pinecone_key'],
+                "pinecone_index": response_data['pinecone_index'],
+                "pinecone_env": response_data['pinecone_env']
+            }
         except requests.exceptions.RequestException as e:
             print(f"Secrets Fetch failed with error: {str(e)}")
             return None
