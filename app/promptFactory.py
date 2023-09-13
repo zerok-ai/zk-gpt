@@ -57,7 +57,6 @@ class PromptFactory:
             'name': 'exception_data',
             'description': 'Template used to inference the issue using exception data',
             'prompt_template': exception_data,
-            "input_variables": ["exception_data"],
             "input_varaibles": ["issue_summary", "exception_data"],
             "output_variables": "exception_summary"
         },
