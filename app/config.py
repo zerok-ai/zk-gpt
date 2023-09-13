@@ -40,8 +40,9 @@ class Config:
         try:
             # response = requests.get(contants.OPERATOR_SECRETS_URL)
             # response.raise_for_status()  # Raise an exception for non-200 status codes
-            # response_data = response.json
+            # response_data = response.json()
             # data = response_data['payload']
+            # print(data)
             # return {
             #     "openai_key": data['openAI_key'],
             #     "pinecone_key": data['pinecone_key'],

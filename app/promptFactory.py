@@ -10,7 +10,7 @@ class PromptFactory:
 
     exception_data = """You are a backend developer AI assistant.
     Your task is to figure out why an issue happened and present it in a concise manner.
-    The issue's summary is here defined as {issue_summary}. We have collected exceptions occured across spans as {exception_data}.
+    The issue's summary is here defined as {issue_summary}. We have collected exceptions stack trace occured across spans as {exception_data}.
     Come up with the likeliest cause based on the exception data presented to you and brief the issue is the exception stack trace if so. 
     """
 
@@ -25,6 +25,14 @@ class PromptFactory:
     Your task is to figure out why an issue happened and present it in a concise manner.
     The issue's summary is here defined as {trace_summary}. We have collected request and response payload across all the spans of the trace of the given issue as {req_res_data}.
     Come up with the likeliest cause based on the request, response data presented to you brief the issue if there are any anolomy in the data. 
+    """
+
+    final_summary_prompt = """As a backend developer AI assistant, your primary objective is to identify the root cause of an issue,
+    summarize it, and provide a concise explanation. The issue's
+    exception stack trace is summarized as {exception_summary}. Additionally,{trace_summary} \
+    is a summary of the trace data collected for this issue, and {req_res_summary} \
+    is the summary of the request-response payload pertaining to this issue,Your task is to determine \
+    the most likely cause based on the provided summary data, and second, briefly highlight any anomalies points.
     """
 
     pod_k8s_events = """<explain about before summary>
@@ -72,6 +80,13 @@ class PromptFactory:
             'description': 'Template used to inference the issue using request response data',
             'prompt_template': request_response_payload,
             "input_varaibles": ["trace_summary", "req_res_data"],
+            "output_variables": "req_res_summary"
+        },
+        {
+            'name': 'final summary',
+            'description': 'Template used to inference the issue with final summary',
+            'prompt_template': final_summary_prompt,
+            "input_varaibles": ["exception_summary", "trace_summary","req_res_summary"],
             "output_variables": "final_summary"
         }
         # ,
