@@ -36,7 +36,7 @@ redis:
 pinecone:
   environment: ""
   apikey: "" 
-  index: "" 
+  index: ""
 
 maxspanrawdatalength: 1000
 
@@ -48,6 +48,9 @@ image:
   repo: "zk-gpt"
   tag: latest
   pullPolicy: IfNotPresent
+  migrationRestartPolicy: Never
+  migrationRepo: "zk-scenario-manager-migration"
+  migrationTag: "latest"
 
 autoscaling:
   enabled: false
