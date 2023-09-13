@@ -7,7 +7,7 @@ import config
 
 postgres_host = config.configuration.get("postgres_host", "localhost")
 postgres_port = config.configuration.get("postgres_port", "5432")
-postgres_db = config.configuration.get("postgres_db", "pl")
+postgres_db = config.configuration.get("postgres_db", "gpt")
 postgres_user = config.configuration.get("postgres_user", "postgres")
 postgres_pass = config.configuration.get("postgres_pass", "eo1Mgtm6HI")
 
