@@ -25,6 +25,7 @@ class PineconeInteraction:
         # inisialize and push to vector db
         for data in data_list:
             self.issueVectorization.vectorsizeDataAndPush(issue_id, incident_id, data)
+        print("vectorzing complete for issue Id : {}, incident_id: {} \n".format(issue_id, incident_id))
 
     def getGptInferencesForQueryForPineconeData(self, issue, query, temperature, topK):
         respone = self.issueVectorization.getGptInferenceUsingVectorDB(query, issue, temperature, topK)
@@ -155,7 +156,6 @@ class Vectorization:
             embeds = self.embed.embed_documents(texts)
             self.index.upsert(vectors=zip(ids, embeds, metadatas))
 
-        print("vectorzing complete for issue Id : {}, incident_id: {} \n".format(issue_id, incident_id))
 
     def getGptInferenceUsingVectorDB(self, query, issue_id, incident_id):
         print(

@@ -28,7 +28,7 @@ spec:
             - name: SERVICE_NAME
               value: zk-operator.zk-client.svc.cluster.local
             - name: SERVICE_PORT
-              value: "8081"
+              value: "80"
             - name: PROTOCOL
               value: http
             - name: HEALTH_PATH

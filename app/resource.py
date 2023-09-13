@@ -77,7 +77,12 @@ def getAndSanitizeSpansMap(issue_id, incident_id):
     return filteredSpansMap
 
 
-def getIncidentRCA(issue_id, incident_id):
+def getIncidentRCA(issue_id, incident_id,rcaUsingLangchianInference):
+
+    # rcaUsingLangchianInference is true get infernce from langchain pipeline
+    if rcaUsingLangchianInference:
+        return getIssueIncidentRca(issue_id, incident_id, False)
+
     gptInstance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
 
     gptInstance.setContext(
@@ -221,6 +226,11 @@ def generateAndStoreRca(issue_id, incident_id):
                                                                                        "req_res",
                                                                                        custom_data['req_res_data'],
                                                                                        "default", "default")
+    pineconeIssueData['req_res_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
+                                                                                        "summary", "req_res",
+                                                                                        langchianInference[
+                                                                                            'req_res_summary'], "default",
+                                                                                        "default")
     pineconeIssueData['final_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
                                                                                         "summary", "final",
                                                                                         langchianInference[
@@ -266,7 +276,7 @@ def getLangchainInference(issue_id, incident_id):
         span = spansMap[spanId]
         span["span_id"] = spanId
         # remove exception span from spanMap
-        if str(span["protocol"]).upper() == "EXCEPTION":
+        if str(span["protocol"]).upper() == "EXCEPTION" or str(span["path"]).upper() == "/EXCEPTION":
             parentSpanId = span["parent_span_id"]
             if parentSpanId in spansMap:
                 spansMap[parentSpanId]["exception"] = span["req_body"]

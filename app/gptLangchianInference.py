@@ -20,11 +20,12 @@ class LangChainInference():
             overall_chain = SequentialChain(chains=sequentialListChains, verbose=True,
                                             input_variables=["issue_prompt", "issue_data", "trace_data",
                                                              "exception_data", "req_res_data"],
-                                            output_variables=["issue_summary", "trace_summary", "exception_summary",
+                                            output_variables=["issue_summary", "trace_summary", "exception_summary","req_res_summary",
                                                               "final_summary"])
 
             final_issue_inference = overall_chain(custom_data)
-
+            # print("final summary : \n")
+            # print(final_issue_inference)
             return final_issue_inference
         except Exception as e:
             print(f"An error occurred: {e}")
