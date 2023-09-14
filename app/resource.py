@@ -199,6 +199,7 @@ def getIssueIncidentRca(issue_id, incident_id, regenerateRca):
     else:
         # regenerateRca = false check if rca already calculated for the issue and send accordindly
         answer = postgresClient.checkIfRcaAlreadyPresent(issue_id)
+        # answer = None
         if answer is None:
             rca = generateAndStoreRca(issue_id, incident_id)  # check update or insert logic also
             return rca
@@ -246,11 +247,11 @@ def generateAndStoreRca(issue_id, incident_id):
                                                                                         langchianInference[
                                                                                             'trace_summary'], "default",
                                                                                         "default")
-    pineconeIssueData['issue_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
-                                                                                        "summary", "issue",
-                                                                                        langchianInference[
-                                                                                            'issue_summary'], "default",
-                                                                                        "default")
+    # pineconeIssueData['issue_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
+    #                                                                                     "summary", "issue",
+    #                                                                                     langchianInference[
+    #                                                                                         'issue_summary'], "default",
+    #                                                                                     "default")
     data_list = [value for value in pineconeIssueData.values()]
     pineconeInteractionProvider.vectorizeDataAndPushtoPineconeDB(issue_id, incident_id, data_list)
     # store in DB
@@ -291,9 +292,9 @@ def getLangchainInference(issue_id, incident_id):
         reqResPayloadMap.append({"response_payload": span['resp_body'], "span": spanId})
 
     # create input variabled for langchain
-    custom_data = {"issue_data": str(issueSummary), "trace_data": str(filteredSpansMap),
+    custom_data = {"issue_data": str(issueSummary["issue_title"]), "trace_data": str(filteredSpansMap),
                    "exception_data": str(exceptionMap), "req_res_data": str(reqResPayloadMap),
-                   "issue_prompt": "You are a backend developer AI assistant. Your task is to figure out why an issue happened and present it in a concise manner."}
+                   "issue_prompt": "You are a backend developer AI assistant. Your task is to figure out why an issue happened based the exception,trace,request respone payload data's presented to you in langchain sequential chain manner, and present it in a concise manner."}
 
     # get langchain inference
     langchianInference = langChainInferenceProvider.getGPTLangchainInference(issue_id, incident_id, custom_data)
