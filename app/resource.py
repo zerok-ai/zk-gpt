@@ -198,16 +198,15 @@ def get_incident_likely_cause(issue_id, incident_id):
     inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
     # inference = None not present
     if inference is None:
-        rca = generate_and_store_inference(issue_id, incident_id)  # check update or insert logic also
-        return rca
-    else:
-        return inference
+        inference = generate_and_store_inference(issue_id, incident_id)  # check update or insert logic also
+
+    return issue_id, incident_id, inference
 
 
 def generate_and_store_inference(issue_id, incident_id):
     # getting langchain inferences
     custom_data, langchian_inference = get_langchain_inference(issue_id, incident_id)
-    rca = langchian_inference['final_summary']
+    inference = langchian_inference['final_summary']
     # push data to pinecone
     pinecone_issue_data = dict()
     pinecone_issue_data['issue_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
@@ -253,48 +252,49 @@ def generate_and_store_inference(issue_id, incident_id):
     data_list = [value for value in pinecone_issue_data.values()]
     pineconeInteractionProvider.vectorizeDataAndPushtoPineconeDB(issue_id, incident_id, data_list)
     # store in DB
-    postgresClient.insertOrUpdateRcaToDB(issue_id, incident_id, rca)
-    return rca
+    postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference)
+    return inference
 
 
 def get_langchain_inference(issue_id, incident_id):
     # fetch all the data required for langchian inference
-    issueSummary = client.getIssueSummary(issue_id)
-    spansMap = client.getSpansMap(issue_id, incident_id)
-    exceptionMap = []
-    reqResPayloadMap = []
-    for span_id in spansMap:
-        spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
-        spansMap[span_id].update(spanRawData)
+    issue_summary = client.getIssueSummary(issue_id)
+    spans_map = client.getSpansMap(issue_id, incident_id)
+    exception_map = []
+    req_res_payload_map = []
+    for span_id in spans_map:
+        span_raw_data = client.getSpanRawdata(issue_id, incident_id, span_id)
+        spans_map[span_id].update(span_raw_data)
 
-    filteredSpansMap = dict()
-    for spanId in spansMap:
+    filtered_spans_map = dict()
+    for spanId in spans_map:
         # remove error key from spanMap
-        del spansMap[spanId]["error"]
+        del spans_map[spanId]["error"]
 
-        span = spansMap[spanId]
+        span = spans_map[spanId]
         span["span_id"] = spanId
         # remove exception span from spanMap
         if str(span["protocol"]).upper() == "EXCEPTION" or str(span["path"]).upper() == "/EXCEPTION":
-            parentSpanId = span["parent_span_id"]
-            if parentSpanId in spansMap:
-                spansMap[parentSpanId]["exception"] = span["req_body"]
-                exceptionMap.append(span["req_body"])
-                filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
+            parent_span_id = span["parent_span_id"]
+            if parent_span_id in spans_map:
+                spans_map[parent_span_id]["exception"] = span["req_body"]
+                exception_map.append(span["req_body"])
+                filtered_spans_map[parent_span_id] = spans_map[parent_span_id]
         else:
-            filteredSpansMap[spanId] = span
+            filtered_spans_map[spanId] = span
 
-    for spanId in filteredSpansMap:
-        span = spansMap[spanId]
-        reqResPayloadMap.append({"request_payload": span['req_body'], "span": spanId})
-        reqResPayloadMap.append({"response_payload": span['resp_body'], "span": spanId})
+    for spanId in filtered_spans_map:
+        span = spans_map[spanId]
+        req_res_payload_map.append({"request_payload": span['req_body'], "span": spanId})
+        req_res_payload_map.append({"response_payload": span['resp_body'], "span": spanId})
 
     # create input variabled for langchain
-    custom_data = {"issue_data": str(issueSummary["issue_title"]), "trace_data": str(filteredSpansMap),
-                   "exception_data": str(exceptionMap), "req_res_data": str(reqResPayloadMap),
+    custom_data = {"issue_data": str(issue_summary["issue_title"]), "trace_data": str(filtered_spans_map),
+                   "exception_data": str(exception_map), "req_res_data": str(req_res_payload_map),
                    "issue_prompt": "You are a backend developer AI assistant. Your task is to figure out why an issue happened based the exception,trace,request respone payload data's presented to you in langchain sequential chain manner, and present it in a concise manner."}
 
     # get langchain inference
-    langchianInference = langChainInferenceProvider.getGPTLangchainInference(issue_id, incident_id, custom_data)
+    langchian_inference = langChainInferenceProvider.getGPTLangchainInference(issue_id, incident_id, custom_data)
 
-    return custom_data, langchianInference
+    return custom_data, langchian_inference
+
