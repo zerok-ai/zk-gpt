@@ -29,7 +29,9 @@ def get_incident(issue_id, incident_id):
 def get_issue_incident_inference():
     data = request.get_json()
     issue_id = data['issueId']
-    incident_id = data['incidentId']
+    incident_id = None
+    if data.get('incidentId') is not None:
+        incident_id = data['incidentId']
     issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
     return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
 

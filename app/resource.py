@@ -187,7 +187,7 @@ def get_incident_likely_cause(issue_id, incident_id):
     if issue_id is None:
         raise Exception("issue_id is None")
 
-    if incident_id is None:
+    if incident_id is None or incident_id == "":
         # fetch latest incident_id for the issue
         incident_id = dataDao.get_latest_incident_id(issue_id)
 
@@ -200,7 +200,28 @@ def get_incident_likely_cause(issue_id, incident_id):
     if inference is None:
         inference = generate_and_store_inference(issue_id, incident_id)  # check update or insert logic also
 
-    return issue_id, incident_id, inference
+    return get_formatted_inference_respone(issue_id, incident_id, inference)
+    
+
+def get_formatted_inference_respone(issue_id, incident_id, inference):
+    inference_summary_anamoly = {
+            "summary": None,
+            "anomalies": None,
+            "data" : inference
+        }
+    try: 
+        split_response = inference.split("Anomalies:")
+        if len(split_response) > 1:
+            # If "Anomalies" keyword is present, store the summary and anomalies
+            inference_summary_anamoly["summary"] = split_response[0]
+            inference_summary_anamoly["anomalies"] = split_response[1].strip()
+        else:
+        # If "Anomalies" keyword is not present, store the entire response as summary
+            inference_summary_anamoly["summary"] = inference.strip()
+        return issue_id, incident_id, inference_summary_anamoly
+    except Exception as e:
+        print("exceotion occured like parsing the langchain resonse for issue:{} incident:{}".format(issue_id,incident_id))
+        return issue_id,incident_id,inference_summary_anamoly
 
 
 def generate_and_store_inference(issue_id, incident_id):
