@@ -398,27 +398,27 @@ def checkIfRcaAlreadyGenerated(issue_id, incident_id):
             conn.close()
 
 
-def checkIfRcaAlreadyPresent(issue_id):
+def check_if_inference_already_present(issue_id, incident_id):
     # Database connection parameters
     db_params = getPostgresDBParams()
-    # Connect to the PostgreSQL database
+    # Connect to the PostgresSQL database
     conn = psycopg2.connect(**db_params)
 
     # Create a cursor
     cur = conn.cursor()
 
     # SQL query to check for the existence of a record with the given issue_id
-    query = """SELECT answer FROM public.issue_incident_conversation WHERE issue_id = %s AND is_rca = %s ORDER BY created_at DESC LIMIT 1; """
+    query = """SELECT inference FROM public.issue_incident_inference WHERE issue_id = %s AND incident_id = %s """
 
     try:
         # Execute the check query with the issue_id as a parameter and rca = True
-        cur.execute(query, (issue_id, True))
+        cur.execute(query, (issue_id, incident_id))
 
         result = cur.fetchone()
 
         if result is not None and result[0] is not None:
-            answer = bytes(result[0]).decode('utf-8')
-            return answer
+            inference = bytes(result[0]).decode('utf-8')
+            return inference
         elif result is not None and result[0] is None:
             return None
         else:
@@ -435,50 +435,48 @@ def checkIfRcaAlreadyPresent(issue_id):
             conn.close()
 
 
-def insertOrUpdateRcaToDB(issue_id, incident_id, answer):
+def insert_or_update_inference_to_db(issue_id, incident_id, inference):
     # Validate that 'answer' is not None
-    if answer is None:
-        print("Rca is None. Aborting database operation. for issue: {} incidentId:{}".format(issue_id, incident_id))
+    if inference is None:
+        print("Inference is None. Aborting database operation. for issue: {} incidentId:{}".format(issue_id, incident_id))
         return
     # Issue and Incident IDs and answer to update/insert
     # Database connection parameters
     db_params = getPostgresDBParams()
     try:
-        # Connect to the PostgreSQL database
+        # Connect to the PostgresSQL database
         conn = psycopg2.connect(**db_params)
 
         # Create a cursor
         cur = conn.cursor()
 
-        new_answer = psycopg2.Binary(answer.encode('utf-8'))  # Replace with your new answer bytes
-        query = "generate RCA"
-        new_query = psycopg2.Binary(query.encode('utf-8'))
+        new_inference = psycopg2.Binary(inference.encode('utf-8'))  # Replace with your new answer bytes
 
         # SQL query to update or insert the answer
         upsert_query = """
-            INSERT INTO public.issue_incident_conversation (issue_id, incident_id, query, answer, created_at, is_rca)
-            VALUES (%s, %s, %s, %s, NOW(), %s)
-            ON CONFLICT (issue_id, incident_id) WHERE is_rca = true
-            DO UPDATE SET answer = EXCLUDED.answer, created_at = EXCLUDED.created_at
-            RETURNING answer;
+            INSERT INTO public.issue_incident_inference (issue_id, incident_id, inference, created_at)
+            VALUES (%s, %s, %s, NOW())
+            ON CONFLICT (issue_id, incident_id)
+            DO UPDATE SET inference = EXCLUDED.inference, created_at = EXCLUDED.created_at
+            RETURNING inference;
         """
 
         # Execute the upsert query with the specified parameters
-        cur.execute(upsert_query, (issue_id, incident_id, new_query, new_answer, True))
+        cur.execute(upsert_query, (issue_id, incident_id, new_inference))
 
         # Fetch the updated/inserted answer
-        updated_answer = cur.fetchone()[0]
+        updated_inference = cur.fetchone()[0]
 
         # Commit the transaction
         conn.commit()
 
         # Print or use the updated/inserted answer as needed
-        print(f"Updated/Inserted answer: {updated_answer}")
+        print(f"Updated/Inserted answer: {updated_inference}")
 
     except psycopg2.Error as e:
-        print(f"Error occurred while updating/inserting answer: {e}")
+        print(f"Error occurred while updating/inserting inference: {e}")
         conn.rollback()
-        raise Exception(f"Error occurred while updating/inserting answer: {e}")
+        raise Exception(f"Error occurred while updating/inserting inference: {e}")
     finally:
         # Close the cursor and the database connection
         if cur:
