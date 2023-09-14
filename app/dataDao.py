@@ -18,10 +18,15 @@ OUTPUT : returns the requested data across different datasets
 8) get pod status 
 9) get logs <backlog>
 """
-
 import client
 import config
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
+
+
+def get_latest_incident_id(issue_id):
+    # fetch all incidents for the given issue
+    issue_incidents = client.getIssueIncidents(issue_id)
+    return issue_incidents[0]
 
 
 def getRequestResponsePayload(issue_id,incident_id):

@@ -398,27 +398,27 @@ def checkIfRcaAlreadyGenerated(issue_id, incident_id):
             conn.close()
 
 
-def checkIfRcaAlreadyPresent(issue_id):
+def check_if_inference_already_present(issue_id, incident_id):
     # Database connection parameters
     db_params = getPostgresDBParams()
-    # Connect to the PostgreSQL database
+    # Connect to the PostgresSQL database
     conn = psycopg2.connect(**db_params)
 
     # Create a cursor
     cur = conn.cursor()
 
     # SQL query to check for the existence of a record with the given issue_id
-    query = """SELECT answer FROM public.issue_incident_conversation WHERE issue_id = %s AND is_rca = %s ORDER BY created_at DESC LIMIT 1; """
+    query = """SELECT inference FROM public.issue_incident_zerok_inference WHERE issue_id = %s AND incident_id = %s """
 
     try:
         # Execute the check query with the issue_id as a parameter and rca = True
-        cur.execute(query, (issue_id, True))
+        cur.execute(query, (issue_id, incident_id))
 
         result = cur.fetchone()
 
         if result is not None and result[0] is not None:
-            answer = bytes(result[0]).decode('utf-8')
-            return answer
+            inference = bytes(result[0]).decode('utf-8')
+            return inference
         elif result is not None and result[0] is None:
             return None
         else:

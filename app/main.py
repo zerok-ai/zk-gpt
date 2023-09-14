@@ -23,11 +23,13 @@ def get_incident(issue_id, incident_id):
     rca = resource.getIncidentRCA(issue_id, incident_id,rcaUsingLangchianInference)
     return jsonify({"payload": {"rca": rca}})
 
-@app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>/langchainInference', methods=['GET'])
-def get_issue_incident_langchain_inference(issue_id, incident_id):
-    regenerateRca = bool(request.args.get('regenerateRca', default=False))
-    rca = resource.getIssueIncidentRca(issue_id, incident_id,regenerateRca)
-    return jsonify({"payload": {"rca": rca}})
+@app.route('/v1/c/gpt/incident/likelyCause', methods=['POST'])
+def get_issue_incident_langchain_inference():
+    data = request.get_json()
+    issue_id = data['issueId']
+    incident_id = data['incidentId']
+    likelyCause = resource.get_incident_likely_cause(issue_id, incident_id)
+    return jsonify({"payload": {"rca": likelyCause}})
 
 
 @app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['POST'])
