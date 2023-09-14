@@ -35,6 +35,15 @@ def get_issue_incident_inference():
     issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
     return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
 
+@app.route('/v1/c/gpt/incident/{issue_id}/list/events', methods=['GET'])
+def get_issue_incident_list_events():
+    issue_id = data['issueId']
+    if data.get('incidentId') is not None:
+        incident_id = data['incidentId']
+    issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
+    return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
+
+
 
 @app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['POST'])
 def query_incident(issue_id, incident_id):
