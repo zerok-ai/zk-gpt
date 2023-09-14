@@ -32,7 +32,7 @@ class PromptFactory:
     exception stack trace is summarized as {exception_summary}. Additionally,{trace_summary} \
     is a summary of the trace data collected for this issue, and {req_res_summary} \
     is the summary of the request-response payload pertaining to this issue,Your task is to determine \
-    the most likely cause based on the provided summary data, and second, briefly highlight any anomalies points.
+    the most likely cause based on the provided summary data in 2 lines without leaving any key data points, and second, briefly highlight any anomalous data points if present.
     """
 
     pod_k8s_events = """<explain about before summary>
