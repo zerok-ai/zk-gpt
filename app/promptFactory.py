@@ -2,16 +2,16 @@ from langchain.prompts import PromptTemplate
 
 
 class PromptFactory:
-    issue_summary = """You are a backend developer AI assistant. Your task is to figure out why an issue \
-    happened and present it in a concise manner wrt exception,latency,out of memory, service unreacable etc. The issue here is defined as {issue_prompt}.
-    We have collected {issue_data} and will feed them to you one by one. Come up with the \
-    likeliest cause based on the data presented to you. 
-    """
+    # issue_summary = """You are a backend developer AI assistant. Your task is to figure out why an issue \
+    # happened and present it in a concise manner wrt exception,latency,out of memory, service unreacable etc. The issue here is defined as {issue_prompt}.
+    # We have collected {issue_data} and will feed them to you one by one. Come up with the \
+    # likeliest cause based on the data presented to you. 
+    # """
 
     exception_data = """You are a backend developer AI assistant.
     Your task is to figure out why an issue happened and present it in a concise manner.
-    The issue's summary is here defined as {issue_summary}. We have collected exceptions stack trace occured across spans as {exception_data}.
-    Come up with the likeliest cause based on the exception data presented to you and brief the issue is the exception stack trace if so. 
+    The issue's summary is here defined as {issue_data}. We have collected exceptions stack trace occured across spans as {exception_data}.
+    Come up with the likeliest cause based on the exception data presented to you and brief the issue's exception stack trace if so. 
     """
 
     trace_data = """You are a backend developer AI assistant.
@@ -32,7 +32,7 @@ class PromptFactory:
     exception stack trace is summarized as {exception_summary}. Additionally,{trace_summary} \
     is a summary of the trace data collected for this issue, and {req_res_summary} \
     is the summary of the request-response payload pertaining to this issue,Your task is to determine \
-    the most likely cause based on the provided summary data in 2 lines without leaving any key data points, and second, briefly highlight any anomalous data points if present.
+    the most likely cause based on the provided summary data in 2 or 3 lines without leaving any key data points. in a saperate line highlight any anomalous data points if present.
     """
 
     pod_k8s_events = """<explain about before summary>
@@ -54,18 +54,18 @@ class PromptFactory:
     {input} <brief about the current data> {custom_data}"""
 
     prompt_infos = [
-        {
-            'name': 'issue_summary',
-            'description': 'Template to summarise the give issue',
-            'prompt_template': issue_summary,
-            "input_varaibles": ["issue_data", "issue_prompt"],
-            "output_variables": "issue_summary"
-        },
+        # {
+        #     'name': 'issue_summary',
+        #     'description': 'Template to summarise the give issue',
+        #     'prompt_template': issue_summary,
+        #     "input_varaibles": ["issue_data", "issue_prompt"],
+        #     "output_variables": "issue_summary"
+        # },
         {
             'name': 'exception_data',
             'description': 'Template used to inference the issue using exception data',
             'prompt_template': exception_data,
-            "input_varaibles": ["issue_summary", "exception_data"],
+            "input_varaibles": ["issue_data", "exception_data"],
             "output_variables": "exception_summary"
         },
         {
