@@ -20,8 +20,8 @@ def get_issue(issue_id):
 
 @app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['GET'])
 def get_incident(issue_id, incident_id):
-    rcaUsingLangchianInference = bool(request.args.get('useLangchain', default=False))
-    rca = resource.getIncidentRCA(issue_id, incident_id, rcaUsingLangchianInference)
+    rca_using_langchian_inference = bool(request.args.get('useLangchain', default=False))
+    rca = resource.getIncidentRCA(issue_id, incident_id, rca_using_langchian_inference)
     return jsonify({"payload": {"rca": rca}})
 
 
@@ -35,14 +35,28 @@ def get_issue_incident_inference():
     issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
     return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
 
-@app.route('/v1/c/gpt/incident/{issue_id}/list/events', methods=['GET'])
-def get_issue_incident_list_events():
-    issue_id = data['issueId']
-    if data.get('incidentId') is not None:
-        incident_id = data['incidentId']
-    issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
-    return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
+@app.route('/v1/c/gpt/incident/<issue_id>/list/events', methods=['GET'])
+def get_issue_incident_list_events(issue_id):
+    limit = int(request.args.get('limit', default=10))
+    offset = int(request.args.get('offset', default=0))
+    total_count, user_conserve_events_response = resource.get_user_conversation_events(issue_id, limit, offset)
+    return jsonify({"payload": {"issueId": issue_id, "events": user_conserve_events_response, "total_count": total_count}})
 
+
+@app.route('/v1/c/gpt/ingest/incident_events', methods=['POST'])
+def ingest_and_retrieve_incident_event_response():
+    data = request.get_json()
+    issue_id = data['issueId']
+    incident_id = data['incidentId']
+    event_type = data['eventType']
+
+    if 'eventRequest' in data:
+        event_request = data['eventRequest']
+        event_response = resource.process_incident_event_and_get_event_response(issue_id, incident_id, event_type, event_request)
+        return jsonify({"payload": dict(issueId=issue_id, incidentId=incident_id, eventType=event_type,
+                                        eventRequest=event_request, eventResponse=event_response)})
+    else:
+        return jsonify({"error": "Missing 'event_request' parameter in the request body."}), 400
 
 
 @app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['POST'])
@@ -72,7 +86,6 @@ def issue_observation(issue_id):
 @app.route('/v1/c/gpt/issue/observation', methods=['POST'])
 def issue_observation_with_params():
     data = request.get_json()
-    print(str(data))
     requestId = str(uuid.uuid4())
     query = data['query']
     temperature = data['temperature']

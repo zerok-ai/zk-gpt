@@ -53,6 +53,12 @@ class PromptFactory:
     memory_usage_events = """<explain about before summary>
     {input} <brief about the current data> {custom_data}"""
 
+    user_query_prompt = """As an AI assistant specializing in backend development, your key task is \
+    to respond to the user's query, "{query}," by drawing upon both the historical context provided by \
+    "{user_qna_context_data}" and the relevant Pinecone similarity documents retrieved for the specific query, \
+    presented as "Documents: {pinecone_similarity_docs} along with the issue summarized as {issue_summary}
+    """
+
     prompt_infos = [
         # {
         #     'name': 'issue_summary',
@@ -65,28 +71,28 @@ class PromptFactory:
             'name': 'exception_data',
             'description': 'Template used to inference the issue using exception data',
             'prompt_template': exception_data,
-            "input_varaibles": ["issue_data", "exception_data"],
+            "input_variables": ["issue_data", "exception_data"],
             "output_variables": "exception_summary"
         },
         {
             'name': 'trace_data',
             'description': 'Template used to inference the issue using trace data',
             'prompt_template': trace_data,
-            "input_varaibles": ["exception_summary", "trace_data"],
+            "input_variables": ["exception_summary", "trace_data"],
             "output_variables": "trace_summary"
         },
         {
             'name': 'request_response_payload',
             'description': 'Template used to inference the issue using request response data',
             'prompt_template': request_response_payload,
-            "input_varaibles": ["trace_summary", "req_res_data"],
+            "input_variables": ["trace_summary", "req_res_data"],
             "output_variables": "req_res_summary"
         },
         {
             'name': 'final summary',
             'description': 'Template used to inference the issue with final summary',
             'prompt_template': final_summary_prompt,
-            "input_varaibles": ["exception_summary", "trace_summary","req_res_summary"],
+            "input_variables": ["exception_summary", "trace_summary","req_res_summary"],
             "output_variables": "final_summary"
         }
         # ,
@@ -97,22 +103,22 @@ class PromptFactory:
         # },
         # {
         #     'name': 'Cpu usage template',
-        #     'description': 'Template to check if the issue occured due to CPU contraints',
+        #     'description': 'Template to check if the issue occurred due to CPU contraints',
         #     'prompt_template': cpu_usage_events_template
         # },
         # {
         #     'name': 'memory usage template',
-        #     'description': 'Template to check if the issue occured due to memory contraints',
+        #     'description': 'Template to check if the issue occurred due to memory constraints',
         #     'prompt_template': memory_usage_events_template
         # },
         # {
         #     'name': 'pod events template',
-        #     'description': 'Template to check if the incident occured due to pod issue',
+        #     'description': 'Template to check if the incident occurred due to pod issue',
         #     'prompt_template': pod_k8s_events_template
         # },
         #  {
-        #     'name': 'deployemnt template',
-        #     'description': 'Template to check if the incident happend due to recent deplpyment',
+        #     'name': 'deployment template',
+        #     'description': 'Template to check if the incident happened due to recent deployment',
         #     'prompt_template': deploy_k8s_events_template
         # },
         #  {
@@ -122,20 +128,48 @@ class PromptFactory:
         # }
     ]
 
-    def getAllPrompts(self):
+    user_query_prompt_infos = [
+        {
+            'name': 'User Query Prompt',
+            'description': 'Template used to respond to the users query',
+            'prompt_template': user_query_prompt,
+            "input_variables": ["query", "pinecone_similarity_docs", "issue_summary", "user_qna_context_data"],
+            "output_variables": "user_query_response"
+        }
+    ]
+
+
+    def get_all_prompts(self):
         return self.prompt_infos
 
-    def generatePromptsForSequentialChain(self):
-        print("")
+    def get_all_user_query_prompts(self):
+        return self.user_query_prompt_infos
+
+    def generate_prompts_for_sequential_chain(self):
         prompts = []
         output_keys = []
 
-        prompt_templates = self.getAllPrompts()
+        prompt_templates = self.get_all_prompts()
         for prompt_tem in prompt_templates:
-            prompt = prompt_tem['prompt_template']
-            print("prompt : {}".format(prompt))
-            prompt_template = PromptTemplate(input_variables=prompt_tem['input_varaibles'],
+            prompt_template = PromptTemplate(input_variables=prompt_tem['input_variables'],
                                              template=prompt_tem['prompt_template'])
             prompts.append(prompt_template)
             output_keys.append(prompt_tem['output_variables'])
         return prompts, output_keys
+
+    def generate_prompts_for_user_query_sequential_chain(self):
+        prompts = []
+        output_keys = []
+
+        prompt_templates = self.get_all_user_query_prompts()
+        for prompt_tem in prompt_templates:
+            prompt_template = PromptTemplate(input_variables=prompt_tem['input_variables'],
+                                             template=prompt_tem['prompt_template'])
+            prompts.append(prompt_template)
+            output_keys.append(prompt_tem['output_variables'])
+        return prompts, output_keys
+
+
+
+
+
