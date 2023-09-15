@@ -229,49 +229,49 @@ def generate_and_store_inference(issue_id, incident_id):
     custom_data, langchian_inference = get_langchain_inference(issue_id, incident_id)
     inference = langchian_inference['final_summary']
     # push data to pinecone
-    pinecone_issue_data = dict()
-    pinecone_issue_data['issue_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
-                                                                                     "issue", custom_data['issue_data'],
-                                                                                     "default", "default")
-    pinecone_issue_data['trace_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
-                                                                                     "trace", custom_data['trace_data'],
-                                                                                     "default", "default")
-    pinecone_issue_data['exception_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
-                                                                                         "exception",
-                                                                                         custom_data['exception_data'],
-                                                                                         "default", "default")
-    pinecone_issue_data['req_res_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
-                                                                                       "req_res",
-                                                                                       custom_data['req_res_data'],
-                                                                                       "default", "default")
-    pinecone_issue_data['req_res_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
-                                                                                          "summary", "req_res",
-                                                                                          langchian_inference[
-                                                                                              'req_res_summary'],
-                                                                                          "default",
-                                                                                          "default")
-    pinecone_issue_data['final_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
-                                                                                        "summary", "final",
-                                                                                        langchian_inference[
-                                                                                            'final_summary'], "default",
-                                                                                        "default")
-    pinecone_issue_data['exception_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
-                                                                                            "summary", "exception",
-                                                                                            langchian_inference[
-                                                                                                'exception_summary'],
-                                                                                            "default", "default")
-    pinecone_issue_data['trace_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
-                                                                                        "summary", "trace",
-                                                                                        langchian_inference[
-                                                                                            'trace_summary'], "default",
-                                                                                        "default")
-    # pinecone_issue_data['issue_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
-    #                                                                                     "summary", "issue",
+    # pinecone_issue_data = dict()
+    # pinecone_issue_data['issue_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
+    #                                                                                  "issue", custom_data['issue_data'],
+    #                                                                                  "default", "default")
+    # pinecone_issue_data['trace_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
+    #                                                                                  "trace", custom_data['trace_data'],
+    #                                                                                  "default", "default")
+    # pinecone_issue_data['exception_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
+    #                                                                                      "exception",
+    #                                                                                      custom_data['exception_data'],
+    #                                                                                      "default", "default")
+    # pinecone_issue_data['req_res_data'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id, "data",
+    #                                                                                    "req_res",
+    #                                                                                    custom_data['req_res_data'],
+    #                                                                                    "default", "default")
+    # pinecone_issue_data['req_res_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
+    #                                                                                       "summary", "req_res",
+    #                                                                                       langchian_inference[
+    #                                                                                           'req_res_summary'],
+    #                                                                                       "default",
+    #                                                                                       "default")
+    # pinecone_issue_data['final_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
+    #                                                                                     "summary", "final",
     #                                                                                     langchian_inference[
-    #                                                                                         'issue_summary'], "default",
+    #                                                                                         'final_summary'], "default",
     #                                                                                     "default")
-    data_list = [value for value in pinecone_issue_data.values()]
-    pineconeInteractionProvider.vectorizeDataAndPushtoPineconeDB(issue_id, incident_id, data_list)
+    # pinecone_issue_data['exception_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
+    #                                                                                         "summary", "exception",
+    #                                                                                         langchian_inference[
+    #                                                                                             'exception_summary'],
+    #                                                                                         "default", "default")
+    # pinecone_issue_data['trace_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
+    #                                                                                     "summary", "trace",
+    #                                                                                     langchian_inference[
+    #                                                                                         'trace_summary'], "default",
+    #                                                                                     "default")
+    # # pinecone_issue_data['issue_summary'] = pineconeInteractionProvider.createPineconeData(issue_id, incident_id,
+    # #                                                                                     "summary", "issue",
+    # #                                                                                     langchian_inference[
+    # #                                                                                         'issue_summary'], "default",
+    # #                                                                                     "default")
+    # data_list = [value for value in pinecone_issue_data.values()]
+    # pineconeInteractionProvider.vectorizeDataAndPushtoPineconeDB(issue_id, incident_id, data_list)
     # store in DB
     postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference)
     return inference
