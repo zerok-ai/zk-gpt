@@ -188,6 +188,11 @@ def get_incident_likely_cause(issue_id, incident_id):
         raise Exception("issue_id is None")
 
     if incident_id is None or incident_id == "":
+        # check if rca is calculated for the issue
+        inference, incident_id_db = postgresClient.check_if_inference_already_present_for_issue(issue_id)
+        # inference = None not present
+        if inference is not None:
+            return get_formatted_inference_respone(issue_id, incident_id_db, inference)
         # fetch latest incident_id for the issue
         incident_id = dataDao.get_latest_incident_id(issue_id)
 
