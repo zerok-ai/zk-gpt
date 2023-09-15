@@ -183,92 +183,90 @@ def check_issue_presence_in_db(issue_id):
             conn.close()
 
 
-def insert_issue_user_query_response(issue_id, incident_id, query, answer, is_rca, created_at):
-    print("")
-    db_params = get_postgres_db_params()
+# def insert_issue_user_query_response(issue_id, incident_id, query, answer, is_rca, created_at):
+#     print("")
+#     db_params = get_postgres_db_params()
+#
+#     data = {
+#         'issue_id': issue_id,
+#         'incident_id': incident_id,
+#         'query': query,
+#         'answer': answer,
+#         'is_rca': is_rca,
+#         'created_at': created_at
+#     }
+#
+#     # Convert string data to bytea
+#     data['query_bytea'] = psycopg2.Binary(data['query'].encode('utf-8'))
+#     data['answer_bytea'] = psycopg2.Binary(data['answer'].encode('utf-8'))
+#
+#     # SQL query for inserting data
+#     insert_query = """
+#         INSERT INTO public.issue_incident_conversation
+#         (issue_id,incident_id, query, answer, is_rca, created_at)
+#         VALUES (%(issue_id)s, %(incident_id)s, %(query_bytea)s, %(answer_bytea)s, %(is_rca)s, %(created_at)s);
+#     """
+#     # Establish a connection to the PostgreSQL database
+#     conn = psycopg2.connect(**db_params)
+#     # Create a cursor
+#     cur = conn.cursor()
+#     try:
+#         # Execute the insert query with the data
+#         cur.execute(insert_query, data)
+#         # Commit the transaction
+#         conn.commit()
+#         print("Query Answer Data inserted successfully!")
+#
+#     except requests.exceptions.RequestException as e:
+#         print(
+#             f"Error occurred While inserting user inference query answer to postgres for issue {issue_id} and incident:{incident_id} as exception:{e}")
+#     finally:
+#         # Close the cursor and the database connection
+#         if cur:
+#             cur.close()
+#         if conn:
+#             conn.close()
+#
 
-    data = {
-        'issue_id': issue_id,
-        'incident_id': incident_id,
-        'query': query,
-        'answer': answer,
-        'is_rca': is_rca,
-        'created_at': created_at
-    }
-
-    # Convert string data to bytea
-    data['query_bytea'] = psycopg2.Binary(data['query'].encode('utf-8'))
-    data['answer_bytea'] = psycopg2.Binary(data['answer'].encode('utf-8'))
-
-    # SQL query for inserting data
-    insert_query = """
-        INSERT INTO public.issue_incident_conversation
-        (issue_id,incident_id, query, answer, is_rca, created_at)
-        VALUES (%(issue_id)s, %(incident_id)s, %(query_bytea)s, %(answer_bytea)s, %(is_rca)s, %(created_at)s);
-    """
-    # Establish a connection to the PostgreSQL database
-    conn = psycopg2.connect(**db_params)
-    # Create a cursor
-    cur = conn.cursor()
-    try:
-        # Execute the insert query with the data
-        cur.execute(insert_query, data)
-        # Commit the transaction
-        conn.commit()
-        print("Query Answer Data inserted successfully!")
-
-    except requests.exceptions.RequestException as e:
-        print(
-            f"Error occurred While inserting user inference query answer to postgres for issue {issue_id} and incident:{incident_id} as exception:{e}")
-    finally:
-        # Close the cursor and the database connection
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-
-
-def insert_issue_incident_context(issue_id, incident_id, context, created_at, updated_at):
-    print("")
-    db_params = get_postgres_db_params()
-
-    data = {
-        'issue_id': issue_id,
-        'incident_id': incident_id,
-        'context': context,
-        'created_at': created_at,
-        'updated_at': updated_at
-    }
-
-    # Convert string data to bytea
-    data['context_bytea'] = psycopg2.Binary(data['context'].encode('utf-8'))
-
-    # SQL query for inserting data
-    insert_query = """
-        INSERT INTO public.issue_incident_context
-        (issue_id, incident_id, context, created_at, updated_at)
-        VALUES (%(issue_id)s, %(incident_id)s, %(context_bytea)s, %(created_at)s, %(updated_at)s);
-    """
-    # Establish a connection to the PostgreSQL database
-    conn = psycopg2.connect(**db_params)
-    # Create a cursor
-    cur = conn.cursor()
-    try:
-        # Execute the insert query with the data
-        cur.execute(insert_query, data)
-        # Commit the transaction
-        conn.commit()
-        print("Query Answer Data inserted successfully!")
-
-    except requests.exceptions.RequestException as e:
-        print(
-            f"Error occurred While inserting user inference query answer to postgres for issue {issue_id} and incident:{incident_id} as exception:{e}")
-    finally:
-        # Close the cursor and the database connection
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+# def insert_issue_incident_context(issue_id, incident_id, context):
+#     print("")
+#     db_params = get_postgres_db_params()
+#
+#     data = {
+#         'issue_id': issue_id,
+#         'incident_id': incident_id,
+#         'context': context
+#     }
+#
+#     # Convert string data to bytea
+#     data['context_bytea'] = psycopg2.Binary(data['context'].encode('utf-8'))
+#
+#     # SQL query for inserting data
+#     insert_query = """
+#         INSERT INTO public.issue_incident_context
+#         (issue_id, incident_id, context, created_at, updated_at)
+#         VALUES (%(issue_id)s, %(incident_id)s, %(context_bytea)s, NOW(), NOW());
+#     """
+#     # Establish a connection to the PostgreSQL database
+#     conn = psycopg2.connect(**db_params)
+#     # Create a cursor
+#     cur = conn.cursor()
+#     try:
+#         # Execute the insert query with the data
+#         cur.execute(insert_query, data)
+#         # Commit the transaction
+#         conn.commit()
+#         print("Query Answer Data inserted successfully!")
+#
+#     except requests.exceptions.RequestException as e:
+#         print(
+#             f"Error occurred While inserting user inference query answer to postgres for issue {issue_id} and incident:{incident_id} as exception:{e}")
+#     finally:
+#         # Close the cursor and the database connection
+#         if cur:
+#             cur.close()
+#         if conn:
+#             conn.close()
 
 
 def upsert_issue_incident_context(issue_id, incident_id, context):
@@ -345,39 +343,39 @@ def fetch_issue_incident_context(issue_id, incident_id):
             conn.close()
 
 
-def check_if_rca_already_generated(issue_id, incident_id):
-    # Database connection parameters
-    db_params = get_postgres_db_params()
-    # Connect to the PostgresSQL database
-    conn = psycopg2.connect(**db_params)
-
-    # Create a cursor
-    cur = conn.cursor()
-
-    # SQL query to check for the existence of a record with the given issue_id
-    check_query = """SELECT is_rca, answer FROM public.issue_incident_conversation WHERE issue_id = %s AND incident_id = %s;"""
-
-    try:
-        # Execute the check query with the issue_id as a parameter
-        cur.execute(check_query, (issue_id, incident_id))
-
-        # Fetch the result (True if a record exists, False if not)
-        result = cur.fetchone()
-
-        if result is not None:
-            isRca_value, answer = result
-            return isRca_value, bytes(answer).decode('utf-8')
-        else:
-            return None, None
-    except psycopg2.Error as e:
-        print(f"Error occurred While fetching issueid in postgres : {e}")
-        raise Exception("Error occurred While fetching issueid in postgres : {e}")
-    finally:
-        # Close the cursor and the database connection
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+# def check_if_rca_already_generated(issue_id, incident_id):
+#     # Database connection parameters
+#     db_params = get_postgres_db_params()
+#     # Connect to the PostgresSQL database
+#     conn = psycopg2.connect(**db_params)
+#
+#     # Create a cursor
+#     cur = conn.cursor()
+#
+#     # SQL query to check for the existence of a record with the given issue_id
+#     check_query = """SELECT is_rca, answer FROM public.issue_incident_conversation WHERE issue_id = %s AND incident_id = %s;"""
+#
+#     try:
+#         # Execute the check query with the issue_id as a parameter
+#         cur.execute(check_query, (issue_id, incident_id))
+#
+#         # Fetch the result (True if a record exists, False if not)
+#         result = cur.fetchone()
+#
+#         if result is not None:
+#             isRca_value, answer = result
+#             return isRca_value, bytes(answer).decode('utf-8')
+#         else:
+#             return None, None
+#     except psycopg2.Error as e:
+#         print(f"Error occurred While fetching issueid in postgres : {e}")
+#         raise Exception("Error occurred While fetching issueid in postgres : {e}")
+#     finally:
+#         # Close the cursor and the database connection
+#         if cur:
+#             cur.close()
+#         if conn:
+#             conn.close()
 
 
 def check_if_inference_already_present(issue_id, incident_id):
@@ -427,7 +425,10 @@ def check_if_inference_already_present_for_issue(issue_id):
     cur = conn.cursor()
 
     # SQL query to check for the existence of a record with the given issue_id
-    query = """SELECT inference , incident_id FROM public.issue_incident_inference WHERE issue_id = %s """
+    query = """
+            SELECT inference , incident_id FROM public.issue_incident_inference 
+            WHERE issue_id = %s ORDER BY created_at DESC LIMIT 1
+        """
 
     try:
         # Execute the check query with the issue_id as a parameter and rca = True
@@ -450,6 +451,7 @@ def check_if_inference_already_present_for_issue(issue_id):
             cur.close()
         if conn:
             conn.close()
+
 
 def insert_or_update_inference_to_db(issue_id, incident_id, inference):
     # Validate that 'answer' is not None

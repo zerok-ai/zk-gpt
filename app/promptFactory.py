@@ -53,13 +53,7 @@ class PromptFactory:
     memory_usage_events = """<explain about before summary>
     {input} <brief about the current data> {custom_data}"""
 
-    user_query_prompt = """
-    [role : systenm : context ]
-    role : systme : summaey 
-    role : system : pine cone 
-    role  user :M  query 
-    
-    As an AI assistant specializing in backend development, your key task is \
+    user_query_prompt = """As an AI assistant specializing in backend development, your key task is \
     to respond to the user's query, "{query}," by drawing upon both the historical context provided by \
     "{user_qna_context_data}" and the relevant Pinecone similarity documents retrieved for the specific query, \
     presented as "Documents: {pinecone_similarity_docs} along with the issue summarized as {issue_summary}

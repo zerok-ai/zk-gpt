@@ -4,7 +4,7 @@ import langchianMultiChainFactory
 import promptFactory
 
 
-class LangChainInference():
+class LangChainInference:
     def __init__(self):
         self.promptFactInstance = promptFactory.PromptFactory()
         self.langchianMultiChainFact = langchianMultiChainFactory.LangChainMultichainFactory()
@@ -15,9 +15,9 @@ class LangChainInference():
                                                                                                                incident_id))  # modify the print statement
             prompts, output_keys = self.promptFactInstance.generate_prompts_for_sequential_chain()
 
-            sequentialListChains = self.langchianMultiChainFact.getSequentialChains(prompts, output_keys)
+            sequential_list_chains = self.langchianMultiChainFact.getSequentialChains(prompts, output_keys)
 
-            overall_chain = SequentialChain(chains=sequentialListChains, verbose=True,
+            overall_chain = SequentialChain(chains=sequential_list_chains, verbose=True,
                                             input_variables=["issue_prompt", "issue_data", "trace_data",
                                                              "exception_data", "req_res_data"],
                                             output_variables=["trace_summary", "exception_summary", "req_res_summary",

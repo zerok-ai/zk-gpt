@@ -190,6 +190,12 @@ def get_incident_likely_cause(issue_id, incident_id):
     if issue_id is None:
         raise Exception("issue_id is None")
 
+    # regenerateRca = false check if rca already calculated for the issue send accordingly
+    inference_db, incident_id_db = postgresClient.check_if_inference_already_present_for_issue(issue_id)
+
+    if inference_db is not None and incident_id_db is not None:
+        return response_formatter.get_formatted_inference_response(issue_id, incident_id_db, inference_db)
+
     if incident_id is None or incident_id == "":
         # fetch latest incident_id for the issue
         incident_id = dataDao.get_latest_incident_id(issue_id)
@@ -197,12 +203,12 @@ def get_incident_likely_cause(issue_id, incident_id):
     if incident_id is None:
         raise Exception("Given issue : {} doesn't have any trace ".format(issue_id))
 
-    # regenerateRca = false check if rca already calculated for the issue and incident and send accordingly
-    inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
-    # inference = None not present
-    if inference is None:
-        inference = inference_engine.generate_and_store_inference(issue_id,
-                                                                  incident_id)  # check update or insert logic also
+    # # regenerateRca = false check if rca already calculated for the issue and incident and send accordingly
+    # inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
+    # # inference = None not present
+    # if inference is None:
+    inference = inference_engine.generate_and_store_inference(issue_id,
+                                                              incident_id)  # check update or insert logic also
 
     return response_formatter.get_formatted_inference_response(issue_id, incident_id, inference)
 

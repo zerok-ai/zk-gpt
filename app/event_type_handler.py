@@ -21,7 +21,8 @@ class EventHandlingStrategy(ABC):
 
 def get_issue_context(issue_id, incident_id):
     # check if context is present in memory or not
-    context = in_memory_context.get_context(issue_id)
+    cache_key = issue_id + '_' + incident_id
+    context = in_memory_context.get_context(cache_key)
     if not context and context is not None and len(context) > 0:
         return context
     else:
@@ -36,12 +37,13 @@ def get_issue_context(issue_id, incident_id):
 
 
 def upsert_issue_context(issue_id, incident_id, new_context):
-    in_memory_context.upsert_context(issue_id, new_context)
+    cache_key = issue_id + '_' + incident_id
+    in_memory_context.upsert_context(cache_key, new_context)
 
 
 class QNAEventStrategy(EventHandlingStrategy):
     def handle_event(self, issue_id, incident_id, event_type, event_request):
-        if event_type == EventType.QNA:
+        if event_type == EventType.QNA.value:
             # Handle QNA event logic here
             # get context of the issue + final summary + user query fetch
 
@@ -49,7 +51,7 @@ class QNAEventStrategy(EventHandlingStrategy):
             issue_context = get_issue_context(issue_id, incident_id)
 
             # fetch final summary
-            issue_summary = postgresClient.check_if_inference_already_present_for_issue(issue_id)
+            issue_summary, incident_id_db = postgresClient.check_if_inference_already_present_for_issue(issue_id)
 
             # fetch pine cone documents
             pinecone_docs = pineconeInteractionProvider.get_similar_docs_for_given_query(event_request, issue_id)
@@ -93,10 +95,10 @@ class UserAdditionEventStrategy(EventHandlingStrategy):
 
 class InferenceEventStrategy(EventHandlingStrategy):
     def handle_event(self, issue_id, incident_id, event_type, event_request):
-        if event_type == EventType.INFERENCE:
+        if event_type == EventType.INFERENCE.value:
             # check if inference already calculated for the issue and incident and send accordingly
             inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
-            # inference = None not present
+            # inference = None -> not present
             if inference is None:
                 inference = inference_engine.generate_and_store_inference(issue_id,
                                                                           incident_id)
@@ -110,7 +112,7 @@ class InferenceEventStrategy(EventHandlingStrategy):
 
 # Create a strategy map
 strategy_map = {
-    EventType.QNA: QNAEventStrategy(),
-    EventType.USER_ADDITION: UserAdditionEventStrategy(),
-    EventType.INFERENCE: InferenceEventStrategy(),
+    EventType.QNA.value: QNAEventStrategy(),
+    EventType.USER_ADDITION.value: UserAdditionEventStrategy(),
+    EventType.INFERENCE.value: InferenceEventStrategy(),
 }
