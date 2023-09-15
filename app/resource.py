@@ -159,23 +159,23 @@ def getIncidentQuery(issue_id, incident_id, query):
     return answer
 
 
-def getIssueObservation(issue_id, query):
+def get_issue_observation(issue_id, query):
     if not postgresClient.check_issue_presence_in_db(issue_id):
-        pineconeInteractionProvider.vectorizeIssueAndPushtoPineconeDb(issue_id)
+        pineconeInteractionProvider.vectorize_issue_and_pushtu_pinecone_db(issue_id)
 
-    return pineconeInteractionProvider.getGptInferencesForQueryCustomData(issue_id, query, 0.3, 30)
+    return pineconeInteractionProvider.get_gpt_inferences_for_query_custom_data(issue_id, query, 0.3, 30)
 
 
-def getIssueObservationWithParams(issue_id, query, temperature, topK, vectorEmbeddingModel, gptModel, requestId):
+def get_issue_observation_with_params(issue_id, query, temperature, topK, vectorEmbeddingModel, gptModel, requestId):
     if not postgresClient.check_issue_presence_in_db(issue_id):
-        pineconeInteractionProvider.vectorizeIssueAndPushtoPineconeDb(issue_id)
-    response = pineconeInteractionProvider.getGptInferencesForQueryCustomData(issue_id, query, temperature, topK)
+        pineconeInteractionProvider.vectorize_issue_and_pushtu_pinecone_db(issue_id)
+    response = pineconeInteractionProvider.get_gpt_inferences_for_query_custom_data(issue_id, query, temperature, topK)
     postgresClient.insert_user_issue_inference(issue_id, query, temperature, topK, vectorEmbeddingModel, gptModel,
                                                requestId, response)
     return response
 
 
-def updateUserIssueObservationFeedback(requestId, feedback, score):
+def update_user_issue_observation_feedback(requestId, feedback, score):
     print("Updating the User Feedback for the infernce with requestId : {requsetId}")
     postgresClient.update_user_inference_feedback(requestId, feedback, score)
 

@@ -35,7 +35,7 @@ def get_issue_incident_inference():
     issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
     return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
 
-@app.route('/v1/c/gpt/incident/<issue_id>/list/events', methods=['GET'])
+@app.route('/v1/c/gpt/issue/<issue_id>/list/events', methods=['GET'])
 def get_issue_incident_list_events(issue_id):
     limit = int(request.args.get('limit', default=10))
     offset = int(request.args.get('offset', default=0))
@@ -43,7 +43,7 @@ def get_issue_incident_list_events(issue_id):
     return jsonify({"payload": {"issueId": issue_id, "events": user_conserve_events_response, "total_count": total_count}})
 
 
-@app.route('/v1/c/gpt/ingest/incident_events', methods=['POST'])
+@app.route('/v1/c/gpt/issue/event', methods=['POST'])
 def ingest_and_retrieve_incident_event_response():
     data = request.get_json()
     issue_id = data['issueId']
@@ -77,7 +77,7 @@ def issue_observation(issue_id):
     if 'query' in data:
         query = data['query']
         print(query)
-        answer = resource.getIssueObservation(issue_id, query)
+        answer = resource.get_issue_observation(issue_id, query)
         return jsonify({"payload": {"query": query, "answer": answer}})
     else:
         return jsonify({"error": "Missing 'query' parameter in the request body."}), 400
@@ -93,8 +93,8 @@ def issue_observation_with_params():
     vectorEmbeddingModel = data['vectorEmbeddingModel']
     gptModel = data['gptModel']
     issue_id = data['issueId']
-    answer = resource.getIssueObservationWithParams(issue_id, query, temperature, topK, vectorEmbeddingModel, gptModel,
-                                                    requestId)
+    answer = resource.get_issue_observation_with_params(issue_id, query, temperature, topK, vectorEmbeddingModel, gptModel,
+                                                        requestId)
     return jsonify({"payload": {"query": query, "issueId": issue_id, "temperature": temperature,
                                 "vectorEmbeddingModel": vectorEmbeddingModel, "topK": topK, "gptModel": gptModel,
                                 "Answer": answer, "requestId": requestId}})
@@ -107,7 +107,7 @@ def issue_inference_user_feedback():
     requestId = data['requestId']
     feedback = data['feedback']
     score = data['score']
-    resource.updateUserIssueObservationFeedback(requestId, feedback, score)
+    resource.update_user_issue_observation_feedback(requestId, feedback, score)
     return '', 200
 
 

@@ -417,6 +417,40 @@ def check_if_inference_already_present(issue_id, incident_id):
             conn.close()
 
 
+def check_if_inference_already_present_for_issue(issue_id):
+    # Database connection parameters
+    db_params = get_postgres_db_params()
+    # Connect to the PostgresSQL database
+    conn = psycopg2.connect(**db_params)
+
+    # Create a cursor
+    cur = conn.cursor()
+
+    # SQL query to check for the existence of a record with the given issue_id
+    query = """SELECT inference , incident_id FROM public.issue_incident_inference WHERE issue_id = %s """
+
+    try:
+        # Execute the check query with the issue_id as a parameter and rca = True
+        cur.execute(query, (issue_id,))
+
+        result = cur.fetchone()
+
+        if result is not None:
+            inference, incident_id = result
+            return bytes(inference).decode('utf-8'), incident_id
+        else:
+            return None, None
+
+    except psycopg2.Error as e:
+        print(f"Error occurred While fetching issueid in postgres : {e}")
+        raise Exception("Error occurred While fetching issueid in postgres : {e}")
+    finally:
+        # Close the cursor and the database connection
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
 def insert_or_update_inference_to_db(issue_id, incident_id, inference):
     # Validate that 'answer' is not None
     if inference is None:
