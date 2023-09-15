@@ -21,34 +21,35 @@ class PineconeInteraction:
     def __init__(self):
         self.issueVectorization = Vectorization()
 
-    def vectorizeDataAndPushtoPineconeDB(self, issue_id, incident_id, data_list):
-        # inisialize and push to vector db
+    def vectorize_data_and_pushto_pinecone_db(self, issue_id, incident_id, data_list):
+        # initialize and push to vector db
         for data in data_list:
-            self.issueVectorization.vectorsizeDataAndPush(issue_id, incident_id, data)
+            self.issueVectorization.vectorize_data_and_push(issue_id, incident_id, data)
         print("vectorzing complete for issue Id : {}, incident_id: {} \n".format(issue_id, incident_id))
 
-    def getGptInferencesForQueryForPineconeData(self, issue, query, temperature, topK):
-        respone = self.issueVectorization.getGptInferenceUsingVectorDB(query, issue, temperature, topK)
-        return respone
-
-    def createPineconeData(self, issue_id, incident_id, data_type, category, data, client, cluster):
+    @staticmethod
+    def create_pinecone_data(issue_id, incident_id, data_type, category, data, client_id, cluster):
         data = {
             "issue_id": issue_id,
             "incident_id": incident_id,
             "payload": data,
             "type": data_type,
             "category": category,
-            "client_id": client,
+            "client_id": client_id,
             "cluster": cluster
         }
         return data
 
-    def vectorizeIssueAndPushtoPineconeDb(self, issue):
-        self.issueVectorization.fetchDataAndVectorsizeIssue(issue)
+    def vectorize_issue_and_pushtu_pinecone_db(self, issue):
+        self.issueVectorization.fetch_data_and_vectorize_issue(issue)
 
-    def getGptInferencesForQueryCustomData(self, issue, query, temperature, topK):
-        respone = self.issueVectorization.getGptInferenceUsingVectorDBCustomParams(query, issue, temperature, topK)
-        return respone
+    def get_gpt_inferences_for_query_custom_data(self, issue, query, temperature, top_k):
+        response = self.issueVectorization.getGptInferenceUsingVectorDBCustomParams(query, issue, temperature, top_k)
+        return response
+
+    def get_similar_docs_for_given_query(self, issue_id, query):
+        similar_pinecone_docs = self.issueVectorization.get_similar_pinecone_docs_for_query(query, issue_id)
+        return similar_pinecone_docs
 
 
 class Vectorization:
@@ -75,8 +76,7 @@ class Vectorization:
         print("pinecone index stats : \n")
         print(str(self.index.describe_index_stats()))
 
-    def vectorsizeDataAndPush(self, issue_id, incident_id, data):
-        issueData = dict()
+    def vectorize_data_and_push(self, issue_id, incident_id, data):
 
         """
         data should of this form : 
@@ -156,22 +156,21 @@ class Vectorization:
             embeds = self.embed.embed_documents(texts)
             self.index.upsert(vectors=zip(ids, embeds, metadatas))
 
-
     def getGptInferenceUsingVectorDB(self, query, issue_id, incident_id):
         print(
-            "fetching the top {} vectors form the vector DB for issue: {}, incident_id: {}, specific to query: {}".format(
-                k, issue_id, incident_id, query))
+            "fetching the top vectors form the vector DB for issue: {}, incident_id: {}, specific to query: {}".format(
+                 issue_id, incident_id, query))
         # write logic to fetch from vector DB.
-        vectorStore = self.getVectorStore(issue_id, incident_id, query)
-        retrievalQA = self.initializeLlmModelAndVectorRetrieval(vectorStore)
-        ans = retrievalQA.run(query)
+        vector_store = self.getVectorStore(issue_id, incident_id, query)
+        retrieval_qa = self.initialize_llm_model_and_vector_retrieval(vector_store)
+        ans = retrieval_qa.run(query)
         response = "Query : {}\n".format(query)
         response += "Answer : {}\n".format(str(ans))
         print(response)
         return str(ans)
 
-    def fetchDataAndVectorsizeIssue(self, issue):
-        print("vectorzing issue with issue Id : {} \n".format(issue))
+    def fetch_data_and_vectorize_issue(self, issue):
+        print("vectoring issue with issue Id : {} \n".format(issue))
         # write vectorization logic
         # get issue summary
         issueData = dict()
@@ -283,8 +282,8 @@ class Vectorization:
 
         print("fetching the top {} vectors form the vector DB specific to  query".format(k))
         # write logic to fetch from vector DB.
-        vectorStore = self.getVectorStore(issue, k, query)
-        retrievalQA = self.initializeLlmModelAndVectorRetrieval(temperature, vectorStore)
+        vectorStore = self.getVectorStore(issue, None, query)
+        retrievalQA = self.initialize_llm_model_and_vector_retrieval(vectorStore)
         ans = retrievalQA.run(query)
         response = "Query : {}\n".format(query)
         response += "Answer : {}\n".format(str(ans))
@@ -297,7 +296,11 @@ class Vectorization:
         vectorstore = Pinecone(
             pinecone.Index(self.index_name), self.embed.embed_query, text_field
         )
-        metadata_filter = {"issue_id": {'$eq': issue_id}, "incident_id": {'$eq': incident_id}}
+        if incident_id is None:
+            metadata_filter = {"issue_id": {'$eq': issue_id}}
+        else:
+            metadata_filter = {"issue_id": {'$eq': issue_id}, "incident_id": {'$eq': incident_id}}
+
         vectorstore.similarity_search(
             query,  # our search query
             k=user_qna_topk,  # return k most relevant docs
@@ -305,7 +308,8 @@ class Vectorization:
         )
         return vectorstore
 
-    def initializeLlmModelAndVectorRetrieval(self, vectorStore):
+    @staticmethod
+    def initialize_llm_model_and_vector_retrieval(vector_store):
         llm = ChatOpenAI(
             openai_api_key=openai_key,
             model_name='gpt-3.5-turbo-16k',
@@ -314,6 +318,11 @@ class Vectorization:
         retrievalQA = RetrievalQA.from_chain_type(
             llm=llm,
             chain_type="stuff",
-            retriever=vectorStore.as_retriever()
+            retriever=vector_store.as_retriever()
         )
         return retrievalQA
+
+    def get_similar_pinecone_docs_for_query(self, query, issue_id):
+        metadata_filter = {"issue_id": {'$eq': issue_id}}
+        similar_docs = self.index_name.similarity_search_with_score(query, k=10, filter=metadata_filter)
+        return similar_docs
