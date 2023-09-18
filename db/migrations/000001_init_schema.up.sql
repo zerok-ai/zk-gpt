@@ -1,24 +1,31 @@
-CREATE TABLE IF NOT EXISTS issue_incident_conversation
+CREATE TABLE IF NOT EXISTS public.issue_incident_inference
 (
-    id                  SERIAL PRIMARY KEY,
-    issue_id            VARCHAR(255),
-    incident_id         VARCHAR(255),
-    query               BYTEA,
-    answer              BYTEA,
-    created_at          TIMESTAMP,
-    is_rca              BOOLEAN,
-    CONSTRAINT unique_issue_incident_rca UNIQUE (issue_id, inciden_id) WHERE is_rca = true
+    id                      SERIAL PRIMARY KEY,
+    issue_id                VARCHAR(255) NOT NULL,
+    incident_id             VARCHAR(255) NOT NULL,
+    inference               BYTEA,
+    created_at              TIMESTAMP,
+    CONSTRAINT unique_issue_incident_inference UNIQUE (issue_id, incident_id)
 );
 
-CREATE TABLE IF NOT EXISTS issue_incident_context
+CREATE TABLE IF NOT EXISTS public.issue_user_conversation_events
 (
-    id          SERIAL PRIMARY KEY,
-    issue_id    VARCHAR(255),
-    incident_id VARCHAR(255),
-    context     BYTEA,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    id                      SERIAL PRIMARY KEY,
+    issue_id                VARCHAR(255) NOT NULL,
+    incident_id             VARCHAR(255) NOT NULL,
+    event_type              VARCHAR(255) NOT NULL,
+    event_request           BYTEA,
+    event_response          BYTEA,
+    created_at              TIMESTAMP
 );
 
-CREATE INDEX idx_issue_id ON issue_incident_conversation(issue_id);
-CREATE INDEX idx_incident_id ON issue_incident_conversation(incident_id);
+CREATE TABLE IF NOT EXISTS public.issue_incident_context
+(
+    id                      SERIAL PRIMARY KEY,
+    issue_id                VARCHAR(255) NOT NULL,
+    incident_id             VARCHAR(255) NOT NULL,
+    context                 BYTEA,
+    created_at              TIMESTAMP,
+    updated_at              TIMESTAMP,
+    CONSTRAINT unique_issue_incident_context UNIQUE (issue_id, incident_id)
+);
