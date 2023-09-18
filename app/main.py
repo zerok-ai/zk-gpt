@@ -35,7 +35,7 @@ def get_issue_incident_inference():
     issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
     return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
 
-@app.route('/v1/c/gpt/issue/<issue_id>/list/events', methods=['GET'])
+@app.route('/v1/c/gpt/incident/<issue_id>/list/events', methods=['GET'])
 def get_issue_incident_list_events(issue_id):
     limit = int(request.args.get('limit', default=10))
     offset = int(request.args.get('offset', default=0))

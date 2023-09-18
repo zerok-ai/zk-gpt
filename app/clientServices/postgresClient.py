@@ -2,9 +2,10 @@ import json
 
 import psycopg2
 import requests
+import pickle
 
 import config
-from app.enums.event_type import EventType
+from enums.event_type import EventType
 
 postgres_host = config.configuration.get("postgres_host", "localhost")
 postgres_port = config.configuration.get("postgres_port", "5432")
@@ -32,8 +33,8 @@ def get_all_user_issue_inferences(issue_id, limit, offset):
         # Print or process the rows as needed
         results = []
         for row in rows:
-            queryString = bytes(row[3]).decode('utf-8')
-            answerString = bytes(row[4]).decode('utf-8')
+            queryString = pickle.loads(row[3])
+            answerString = pickle.loads(row[4])
 
             results.append({
                 'issueId': row[2],
@@ -74,8 +75,8 @@ def insert_user_issue_inference(issue_id, query, temperature, topK, vectorEmbedd
     }
 
     # Convert string data to bytea
-    data['query_bytea'] = psycopg2.Binary(data['query'].encode('utf-8'))
-    data['answer_bytea'] = psycopg2.Binary(data['answer'].encode('utf-8'))
+    data['query_bytea'] = pickle.dumps(data['query'])
+    data['answer_bytea'] = pickle.dumps(data['answer'])
 
     # SQL query for inserting data
     insert_query = """
@@ -286,7 +287,7 @@ def upsert_issue_incident_context(issue_id, incident_id, context):
             """
 
         # Convert string data to bytea
-        context_bytea = psycopg2.Binary(context.encode('utf-8'))
+        context_bytea = pickle.dumps(context)
 
         # Execute the upsert query
         cur.execute(upsert_query, (issue_id, incident_id, context_bytea))
@@ -329,7 +330,7 @@ def fetch_issue_incident_context(issue_id, incident_id):
 
         if result is not None:
             context = result
-            return bytes(context).decode('utf-8')
+            return pickle.loads(context[0])
         else:
             return None
     except psycopg2.Error as e:
@@ -397,7 +398,7 @@ def check_if_inference_already_present(issue_id, incident_id):
         result = cur.fetchone()
 
         if result is not None and result[0] is not None:
-            inference = bytes(result[0]).decode('utf-8')
+            inference = pickle.loads(result[0])
             return inference
         elif result is not None and result[0] is None:
             return None
@@ -438,7 +439,7 @@ def check_if_inference_already_present_for_issue(issue_id):
 
         if result is not None:
             inference, incident_id = result
-            return bytes(inference).decode('utf-8'), incident_id
+            return pickle.loads(inference), incident_id
         else:
             return None, None
 
@@ -469,7 +470,7 @@ def insert_or_update_inference_to_db(issue_id, incident_id, inference):
         # Create a cursor
         cur = conn.cursor()
 
-        new_inference = psycopg2.Binary(inference.encode('utf-8'))  # Replace with your new answer bytes
+        new_inference = pickle.dumps(inference)  # Replace with your new answer bytes
 
         # SQL query to update or insert the answer
         upsert_query = """
@@ -518,15 +519,15 @@ def insert_user_conversation_event(issue_id, incident_id, event_type, event_requ
         }
 
         # Convert string data to bytea
-        data['event_request_bytea'] = psycopg2.Binary(data['event_response'].encode('utf-8'))
-        data['event_response_bytea'] = psycopg2.Binary(data['event_response'].encode('utf-8'))
+        data['event_request_bytea'] = pickle.dumps(data['event_request'])
+        data['event_response_bytea'] = pickle.dumps(data['event_response'])
 
         # SQL query for inserting data
         insert_query = """
-                        INSERT INTO public.issue_user_conversation_events 
-                        (issue_id, incident_id, event_type, event_request, event_response, created_at)
-                        VALUES (%(issue_id)s, %(incident_id)s, %(event_type)s, %(event_request)s, %(event_response)s, NOW());
-                    """
+            INSERT INTO public.issue_user_conversation_events 
+            (issue_id, incident_id, event_type, event_request, event_response, created_at)
+            VALUES (%(issue_id)s, %(incident_id)s, %(event_type)s, %(event_request)s, %(event_response)s, NOW());
+        """
 
         # Establish a connection to the PostgresSQL database
         conn = psycopg2.connect(**db_params)
@@ -551,7 +552,6 @@ def insert_user_conversation_event(issue_id, incident_id, event_type, event_requ
 
 
 def get_user_conversation_events(issue_id, limit, offset):
-    print("")
 
     db_params = get_postgres_db_params()
     conn = psycopg2.connect(**db_params)
@@ -583,8 +583,8 @@ def get_user_conversation_events(issue_id, limit, offset):
 
         results = []
         for row in rows:
-            event_request = bytes(row[5]).decode('utf-8')
-            event_response = bytes(row[6]).decode('utf-8')
+            event_request = pickle.loads(row[5])
+            event_response = pickle.loads(row[6])
             results.append({
                 'issueId': row[2],
                 'incidentId': row[3],

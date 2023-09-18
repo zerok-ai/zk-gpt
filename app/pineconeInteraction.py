@@ -8,6 +8,7 @@ from langchain.chains import RetrievalQA
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import config
 import client
+import json
 
 openai_key = config.configuration.get("openai_key", "")
 pinecone_index_key = config.configuration.get("pinecone_index", "zk-index-prod")
@@ -294,19 +295,19 @@ class Vectorization:
         text_field = "text"
         # switch back to normal index for langchain
         vectorstore = Pinecone(
-            pinecone.Index(self.index_name), self.embed.embed_query, text_field
+            index=pinecone.Index(self.index_name), embedding=self.embed.embed_query, text_key=text_field
         )
         if incident_id is None:
             metadata_filter = {"issue_id": {'$eq': issue_id}}
         else:
             metadata_filter = {"issue_id": {'$eq': issue_id}, "incident_id": {'$eq': incident_id}}
 
-        vectorstore.similarity_search(
+        docs = vectorstore.similarity_search(
             query,  # our search query
             k=user_qna_topk,  # return k most relevant docs
             filter=metadata_filter,
         )
-        return vectorstore
+        return vectorstore, docs
 
     @staticmethod
     def initialize_llm_model_and_vector_retrieval(vector_store):
@@ -323,6 +324,27 @@ class Vectorization:
         return retrievalQA
 
     def get_similar_pinecone_docs_for_query(self, query, issue_id):
-        metadata_filter = {"issue_id": {'$eq': issue_id}}
-        similar_docs = self.index_name.similarity_search_with_score(query, k=10, filter=metadata_filter)
-        return similar_docs
+        text_field = "text"
+        # switch back to normal index for langchain
+        vectorstore = Pinecone(
+            pinecone.Index(self.index_name), self.embed.embed_query, text_field
+        )
+        
+        metadata_filter = {"source": {'$eq': str(issue_id)}}
+       
+        docs = vectorstore.similarity_search(
+            query,  # our search query
+            k=user_qna_topk  # return k most relevant docs
+            # filter={
+            #     "issue_id": {"$eq": str(issue_id)}
+            # },
+        )
+        print("vectorstore --------------------------------------------------------------------------------- \n")
+        # print(str(vectorstore))
+
+        print("\n")
+        # print(str(json.dumps(docs)))
+        for doc in docs:
+            print(str(doc))
+
+        return docs
