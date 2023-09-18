@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from typing import List
 
 class ContextCache:
 
@@ -7,20 +8,20 @@ class ContextCache:
         self.cache = OrderedDict()
         self.capacity = capacity
 
-    def get_context(self, key: str) -> list[str]:
+    def get_context(self, key: str) -> List[str]:
         if key not in self.cache:
             return []
         else:
             self.cache.move_to_end(key)
-            return self.cache[key]
+            return self.cache.get(key)
 
-    def put_context(self, key: str, value: list[str]) -> None:
+    def put_context(self, key: str, value: List[str]) -> None:
         self.cache[key] = value
         self.cache.move_to_end(key)
         if len(self.cache) > self.capacity:
             self.cache.popitem(last=False)  # LIFO because last = False
 
-    def upsert_context(self, key: str, value: list[str]) -> None:
+    def upsert_context(self, key: str, value: List[str]) -> None:
         self.cache[key] = value
         self.cache.move_to_end(key)
         if len(self.cache) > self.capacity:
