@@ -70,7 +70,7 @@ class QNAEventStrategy(EventHandlingStrategy):
                                                                                                     incident_id,
                                                                                                     custom_data)
 
-            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_request, event_type,
+            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, event_request,
                                                           langchian_inference['user_query_response'])
 
             # update the context of the issue
@@ -103,7 +103,7 @@ class InferenceEventStrategy(EventHandlingStrategy):
                 inference = inference_engine.generate_and_store_inference(issue_id,
                                                                           incident_id)
             # store the event conversation in DB
-            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_request, event_type, inference)
+            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, event_request, inference)
 
             # TODO: update the context of the issue
 

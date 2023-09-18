@@ -526,7 +526,7 @@ def insert_user_conversation_event(issue_id, incident_id, event_type, event_requ
         insert_query = """
             INSERT INTO public.issue_user_conversation_events 
             (issue_id, incident_id, event_type, event_request, event_response, created_at)
-            VALUES (%(issue_id)s, %(incident_id)s, %(event_type)s, %(event_request)s, %(event_response)s, NOW());
+            VALUES (%(issue_id)s, %(incident_id)s, %(event_type)s, %(event_request_bytea)s, %(event_response_bytea)s, NOW());
         """
 
         # Establish a connection to the PostgresSQL database
@@ -582,12 +582,16 @@ def get_user_conversation_events(issue_id, limit, offset):
         rows = cur.fetchall()
 
         results = []
+        print("---------------results--------------------------------------------------\n")
+        print(rows)
         for row in rows:
-            event_request = pickle.loads(row[5])
-            event_response = pickle.loads(row[6])
+            print("---------------rows--------------------------------------------------\n")
+            print(row[1])
+            event_request = pickle.loads(row[3])
+            event_response = pickle.loads(row[5])
             results.append({
-                'issueId': row[2],
-                'incidentId': row[3],
+                'issueId': row[1],
+                'incidentId': row[2],
                 'event_type': row[4],
                 'event_request': event_request,
                 'event_response': event_response,
