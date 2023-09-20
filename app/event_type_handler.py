@@ -110,9 +110,27 @@ class InferenceEventStrategy(EventHandlingStrategy):
             return inference
 
 
+class TraceSwitchEventStrategy(EventHandlingStrategy):
+    def handle_event(self, issue_id, incident_id, event_type, event_request):
+        if event_type == EventType.TRACE_SWITCH.value:
+            # check if inference already calculated for the issue and incident and send accordingly
+            inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
+            # inference = None -> not present
+            if inference is None:
+                inference = inference_engine.generate_and_store_inference(issue_id,
+                                                                          incident_id)
+            # store the event conversation in DB
+            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, event_request, inference)
+
+            # TODO: update the context of the issue
+
+            return inference
+
+
 # Create a strategy map
 strategy_map = {
     EventType.QNA.value: QNAEventStrategy(),
     EventType.USER_ADDITION.value: UserAdditionEventStrategy(),
     EventType.INFERENCE.value: InferenceEventStrategy(),
+    EventType.TRACE_SWITCH.value: TraceSwitchEventStrategy()
 }

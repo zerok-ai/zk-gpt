@@ -15,7 +15,7 @@ pinecone_index_key = config.configuration.get("pinecone_index", "zk-index-prod")
 pinecone_api_key = config.configuration.get("pinecone_key", "cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2")
 pinecone_environment = config.configuration.get("pinecone_env", "us-west4-gcp-free")
 user_qna_openai_temp = config.configuration.get("user_qna_openai_temp", 0.4)
-user_qna_topk = config.configuration.get("user_qna_topk", 10)
+user_qna_topk = config.configuration.get("user_qna_topk", 500)
 
 
 class PineconeInteraction:
@@ -334,17 +334,12 @@ class Vectorization:
        
         docs = vectorstore.similarity_search(
             query,  # our search query
-            k=user_qna_topk  # return k most relevant docs
-            # filter={
-            #     "issue_id": {"$eq": str(issue_id)}
-            # },
+            k=user_qna_topk,  # return k most relevant docs
+            filter={
+                "issue_id": {"$eq": str(issue_id)}
+            }
         )
-        print("vectorstore --------------------------------------------------------------------------------- \n")
         # print(str(vectorstore))
 
-        print("\n")
-        # print(str(json.dumps(docs)))
-        for doc in docs:
-            print(str(doc))
 
         return docs
