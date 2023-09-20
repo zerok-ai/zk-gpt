@@ -585,12 +585,11 @@ def get_user_conversation_events(issue_id, limit, offset):
         for row in rows:
             event_request = pickle.loads(row[4])
             event_response = pickle.loads(row[5])
+            event = event_response
             results.append({
                 'issueId': row[1],
                 'incidentId': row[2],
-                'event_type': row[3],
-                'event_request': event_request,
-                'event_response': event_response,
+                'event': event,
                 'created_at': row[6]
             })
 

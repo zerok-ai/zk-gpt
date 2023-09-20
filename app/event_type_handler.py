@@ -3,14 +3,12 @@ from abc import ABC, abstractmethod
 from enums.event_type import EventType
 from flask import jsonify
 
-
 import pineconeInteraction
 import gptLangchianInference
 import inference_engine
 from clientServices import postgresClient
 import context_cache
 import response_formatter
-
 
 pineconeInteractionProvider = pineconeInteraction.PineconeInteraction()
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
@@ -96,7 +94,6 @@ class QNAEventStrategy(EventHandlingStrategy):
             return jsonify({"payload": dict(issueId=issue_id, incidentId=incident_id, event=event_response)})
 
 
-
 class UserAdditionEventStrategy(EventHandlingStrategy):
     def handle_event(self, issue_id, incident_id, event_type, event):
         pass
@@ -105,7 +102,6 @@ class UserAdditionEventStrategy(EventHandlingStrategy):
 class InferenceEventStrategy(EventHandlingStrategy):
     def handle_event(self, issue_id, incident_id, event_type, event):
         if event_type == EventType.INFERENCE.value:
-            event_request = event['request']
             # check if inference already calculated for the issue and incident and send accordingly
             inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
             # inference = None -> not present
@@ -115,8 +111,9 @@ class InferenceEventStrategy(EventHandlingStrategy):
             # store the event conversation in DB
             inference_request = "Get likely cause for the issue : {}".format(issue_id)
             likely_cause = response_formatter.get_formatted_inference_response(issue_id, incident_id, inference)
-            event_response = dict(type="INFERENCE", inference=likely_cause)
-            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, inference_request, event_response)
+            event_response = dict(type="INFERENCE",request=inference_request, response=likely_cause)
+            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, inference_request,
+                                                          event_response)
 
             # TODO: update the context of the issue
 
@@ -130,17 +127,21 @@ class TraceSwitchEventStrategy(EventHandlingStrategy):
             # check if inference already calculated for the issue and incident and send accordingly
             old_incident = event_request['oldIncident']
             new_incident = event_request['newIncident']
-            context_switch_request = "context switched from incident id : {} to incident id : {}".format(old_incident,
-                                                                                                         new_incident)
+            context_switch_request = "switch from incident id : {} to incident id : {}".format(old_incident,
+                                                                                               new_incident)
+            context_switch_response = "context switched from incident id : {} to incident id : {}".format(old_incident,
+                                                                                                          new_incident)
             inference = postgresClient.check_if_inference_already_present(issue_id, new_incident)
             # inference = None -> not present
             if inference is None:
                 inference = inference_engine.generate_and_store_inference(issue_id,
                                                                           new_incident)
 
-            event_response = dict(oldIncident=old_incident, newIncident=new_incident)
+            event_response = dict(request=context_switch_request, response=context_switch_response,
+                                  oldIncident=old_incident, newIncident=new_incident)
             # store the event conversation in DB
-            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, context_switch_request, event_response)
+            postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, context_switch_request,
+                                                          event_response)
 
             # TODO: update the context of the issue
 
