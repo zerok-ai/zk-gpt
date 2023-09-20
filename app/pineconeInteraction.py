@@ -8,6 +8,7 @@ from langchain.chains import RetrievalQA
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import config
 import client
+import concurrent.futures
 import json
 
 openai_key = config.configuration.get("openai_key", "")
@@ -24,9 +25,18 @@ class PineconeInteraction:
 
     def vectorize_data_and_pushto_pinecone_db(self, issue_id, incident_id, data_list):
         # initialize and push to vector db
-        for data in data_list:
-            self.issueVectorization.vectorize_data_and_push(issue_id, incident_id, data)
-        print("vectorzing complete for issue Id : {}, incident_id: {} \n".format(issue_id, incident_id))
+        # Use a ThreadPoolExecutor with 5 worker threads (you can adjust the number as needed)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            # Create a list of arguments for vectorize_and_push_wrapper
+            args_list = [(issue_id, incident_id, data) for data in data_list]
+
+            # Submit tasks for vectorizing data
+            executor.map(self.vectorize_and_push_wrapper, args_list)
+
+        # print(f"All vectorizing complete for issue Id: {issue_id}, incident_id: {incident_id}\n")
+        # for data in data_list:
+        #     self.issueVectorization.vectorize_data_and_push(issue_id, incident_id, data)
+        # print("vectorzing complete for issue Id : {}, incident_id: {} \n".format(issue_id, incident_id))
 
     @staticmethod
     def create_pinecone_data(issue_id, incident_id, data_type, category, data, client_id, cluster):
@@ -52,6 +62,9 @@ class PineconeInteraction:
         similar_pinecone_docs = self.issueVectorization.get_similar_pinecone_docs_for_query(query, issue_id)
         return similar_pinecone_docs
 
+    def vectorize_and_push_wrapper(self, args):
+        issue_id, incident_id, data = args
+        self.issueVectorization.vectorize_data_and_push(issue_id, incident_id, data)
 
 class Vectorization:
     def __init__(self):
