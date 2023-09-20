@@ -35,12 +35,14 @@ def get_issue_incident_inference():
     issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
     return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
 
+
 @app.route('/v1/c/gpt/incident/<issue_id>/list/events', methods=['GET'])
 def get_issue_incident_list_events(issue_id):
     limit = int(request.args.get('limit', default=10))
     offset = int(request.args.get('offset', default=0))
     total_count, user_conserve_events_response = resource.get_user_conversation_events(issue_id, limit, offset)
-    return jsonify({"payload": {"issueId": issue_id, "events": user_conserve_events_response, "total_count": total_count}})
+    return jsonify(
+        {"payload": {"issueId": issue_id, "events": user_conserve_events_response, "total_count": total_count}})
 
 
 @app.route('/v1/c/gpt/issue/event', methods=['POST'])
@@ -48,15 +50,15 @@ def ingest_and_retrieve_incident_event_response():
     data = request.get_json()
     issue_id = data['issueId']
     incident_id = data['incidentId']
-    event_type = data['eventType']
 
-    if 'eventRequest' in data:
-        event_request = data['eventRequest']
-        event_response = resource.process_incident_event_and_get_event_response(issue_id, incident_id, event_type, event_request)
-        return jsonify({"payload": dict(issueId=issue_id, incidentId=incident_id, eventType=event_type,
-                                        eventRequest=event_request, eventResponse=event_response)})
+    if 'event' in data:
+        event_request = data['event']
+        event_type = event_request['type']
+        event_response = resource.process_incident_event_and_get_event_response(issue_id, incident_id, event_type,
+                                                                                event_request)
+        return event_response
     else:
-        return jsonify({"error": "Missing 'event_request' parameter in the request body."}), 400
+        return jsonify({"error": "Missing 'event' parameter in the request body."}), 400
 
 
 @app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['POST'])
@@ -93,7 +95,8 @@ def issue_observation_with_params():
     vectorEmbeddingModel = data['vectorEmbeddingModel']
     gptModel = data['gptModel']
     issue_id = data['issueId']
-    answer = resource.get_issue_observation_with_params(issue_id, query, temperature, topK, vectorEmbeddingModel, gptModel,
+    answer = resource.get_issue_observation_with_params(issue_id, query, temperature, topK, vectorEmbeddingModel,
+                                                        gptModel,
                                                         requestId)
     return jsonify({"payload": {"query": query, "issueId": issue_id, "temperature": temperature,
                                 "vectorEmbeddingModel": vectorEmbeddingModel, "topK": topK, "gptModel": gptModel,

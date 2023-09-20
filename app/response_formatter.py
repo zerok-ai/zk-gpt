@@ -13,8 +13,8 @@ def get_formatted_inference_response(issue_id, incident_id, inference):
         else:
             # If "Anomalies" keyword is not present, store the entire response as summary
             inference_summary_anomaly["summary"] = inference.strip()
-        return issue_id, incident_id, inference_summary_anomaly
+        return inference_summary_anomaly
     except Exception as e:
         print("exception occurred like parsing the langchain response for issue:{} incident:{}".format(issue_id,
                                                                                                        incident_id))
-        return issue_id, incident_id, inference_summary_anomaly
+        return inference_summary_anomaly

@@ -54,9 +54,9 @@ class PromptFactory:
     {input} <brief about the current data> {custom_data}"""
 
     user_query_prompt = """ your key task is \
-    to respond to the user's query, "{query}," by drawing upon both the historical system user context provided by \
+    to respond to the user's query, "{query}," by drawing upon both the system user context provided by \
     "{user_qna_context_data}" and the given issue summarized as {issue_summary} and relevant Pinecone similarity  \
-    documents retrieved for the specific query, presented as "Documents: {pinecone_similarity_docs} along with 
+    documents retrieved for the specific query, presented as "Documents: {pinecone_similarity_docs}.
     """
 
     prompt_infos = [
