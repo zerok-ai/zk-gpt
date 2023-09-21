@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from enums.event_type import EventType
 from flask import jsonify
-
+import client
 import pineconeInteraction
 import gptLangchianInference
 import inference_engine
@@ -50,6 +50,36 @@ class QNAEventStrategy(EventHandlingStrategy):
             # get context of the issue + final summary + user query fetch
             event_request = event['request']
             query = event_request['query']
+
+            spans_map = client.getSpansMap(issue_id, incident_id)
+            exception_map = []
+            req_res_payload_map = []
+            for span_id in spans_map:
+                span_raw_data = client.getSpanRawdata(issue_id, incident_id, span_id)
+                spans_map[span_id].update(span_raw_data)
+
+            filtered_spans_map = dict()
+            for spanId in spans_map:
+                # remove error key from spanMap
+                del spans_map[spanId]["error"]
+
+                span = spans_map[spanId]
+                span["span_id"] = spanId
+                # remove exception span from spanMap
+                if str(span["protocol"]).upper() == "EXCEPTION" or str(span["path"]).upper() == "/EXCEPTION":
+                    parent_span_id = span["parent_span_id"]
+                    exception_map.append(span["req_body"])
+                    if parent_span_id in spans_map:
+                        spans_map[parent_span_id]["exception"] = span["req_body"]
+                        filtered_spans_map[parent_span_id] = spans_map[parent_span_id]
+                else:
+                    filtered_spans_map[spanId] = span
+
+            for spanId in filtered_spans_map:
+                span = spans_map[spanId]
+                req_res_payload_map.append({"request_payload": span['req_body'], "span": spanId})
+                req_res_payload_map.append({"response_payload": span['resp_body'], "span": spanId})
+
             # fetch context
             issue_context = get_issue_context(issue_id, incident_id)
 
@@ -65,16 +95,20 @@ class QNAEventStrategy(EventHandlingStrategy):
                 "query": query,
                 "pinecone_similarity_docs": pinecone_docs,
                 "issue_summary": issue_summary,
-                "user_qna_context_data": issue_context
+                "user_qna_context_data": issue_context,
+                "trace_data": str(filtered_spans_map),
+                "exception_data": str(exception_map),
+                "request_response_payload": str(req_res_payload_map)
             }
 
             # get langchain inference
             langchian_inference = langChainInferenceProvider.get_user_query_gpt_langchain_inference(issue_id,
                                                                                                     incident_id,
                                                                                                     custom_data)
-
+            print("langchain inference : \n")
+            print(langchian_inference)
             upsert_issue_context(issue_id, incident_id, issue_context)
-            event_response = dict(type=EventType.QNA.value, response=langchian_inference['user_query_response'], query=query)
+            event_response = dict(type=EventType.QNA.value, response=str(langchian_inference['user_query_response']), query=query)
 
             postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, query,
                                                           event_response)

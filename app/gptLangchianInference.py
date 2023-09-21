@@ -24,8 +24,8 @@ class LangChainInference:
                                                               "final_summary"])
 
             final_issue_inference = overall_chain(custom_data)
-            # print("final summary : \n")
-            # print(final_issue_inference)
+            print("final summary : \n")
+            print(final_issue_inference)
             return final_issue_inference
         except Exception as e:
             print(f"An error occurred: {e}")
@@ -42,7 +42,7 @@ class LangChainInference:
             user_query_sequential_list_chains = self.langchianMultiChainFact.getSequentialChains(prompts, output_keys)
 
             overall_chain = SequentialChain(chains=user_query_sequential_list_chains, verbose=True,
-                                            input_variables=["query", "pinecone_similarity_docs", "issue_summary", "user_qna_context_data"],
+                                            input_variables=["query", "trace_data", "exception_data", "request_response_payload"],
                                             output_variables=["user_query_response"])
 
             user_query_final_inference = overall_chain(custom_data)
