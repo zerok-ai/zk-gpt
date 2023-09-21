@@ -41,9 +41,9 @@ def get_langchain_inference(issue_id, incident_id):
         # remove exception span from spanMap
         if str(span["protocol"]).upper() == "EXCEPTION" or str(span["path"]).upper() == "/EXCEPTION":
             parent_span_id = span["parent_span_id"]
+            exception_map.append(span["req_body"])
             if parent_span_id in spans_map:
                 spans_map[parent_span_id]["exception"] = span["req_body"]
-                exception_map.append(span["req_body"])
                 filtered_spans_map[parent_span_id] = spans_map[parent_span_id]
         else:
             filtered_spans_map[spanId] = span
