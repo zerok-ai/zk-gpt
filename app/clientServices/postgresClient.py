@@ -593,7 +593,8 @@ def get_user_conversation_events(issue_id, limit, offset):
                 'created_at': row[6]
             })
 
-        return total_count, results
+        reverse_results = results[::-1]
+        return total_count, reverse_results
 
     except requests.exceptions.RequestException as e:
         print(f"Error occurred fetching user inferences for an {issue_id} with exception : {e}")

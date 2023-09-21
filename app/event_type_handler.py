@@ -74,7 +74,7 @@ class QNAEventStrategy(EventHandlingStrategy):
                                                                                                     custom_data)
 
             upsert_issue_context(issue_id, incident_id, issue_context)
-            event_response = dict(type="QNA", response=langchian_inference['user_query_response'], query=query)
+            event_response = dict(type=EventType.QNA.value, response=langchian_inference['user_query_response'], query=query)
 
             postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, query,
                                                           event_response)
@@ -111,7 +111,7 @@ class InferenceEventStrategy(EventHandlingStrategy):
             # store the event conversation in DB
             inference_request = "Get likely cause for the issue : {}".format(issue_id)
             likely_cause = response_formatter.get_formatted_inference_response(issue_id, incident_id, inference)
-            event_response = dict(type="INFERENCE",request=inference_request, response=likely_cause)
+            event_response = dict(type=EventType.INFERENCE.value, request=inference_request, response=likely_cause)
             postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, inference_request,
                                                           event_response)
 
@@ -137,7 +137,7 @@ class TraceSwitchEventStrategy(EventHandlingStrategy):
                 inference = inference_engine.generate_and_store_inference(issue_id,
                                                                           new_incident)
 
-            event_response = dict(request=context_switch_request, response=context_switch_response,
+            event_response = dict(type=EventType.CONTEXT_SWITCH.value, request=context_switch_request, response=context_switch_response,
                                   oldIncident=old_incident, newIncident=new_incident)
             # store the event conversation in DB
             postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, context_switch_request,
