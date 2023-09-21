@@ -10,6 +10,7 @@ redis_host = config.configuration.get("redis_host", "localhost")
 redis_db = config.configuration.get("redis_db", 6)
 redis_pass = config.configuration.get("redis_password", "")
 
+
 def getIssueSummary(issue_id):
     url = f"http://{axon_host}/v1/c/axon/issue/{issue_id}"
 
@@ -86,6 +87,20 @@ def getIssueIncidents(issue_id):
         return incidents
     except requests.exceptions.RequestException as e:
         print(f"Error while fetching incident Ids for a given issue : {e}")
+
+
+def getLatestIssuesData():
+    url = f"http://{axon_host}/v1/c/axon/issue"
+    params = {"limit": 50, "offset": 0, "st": "-15m"}
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status  # Raise an HTTPError exception for HTTP errors (4xx and 5xx status codes)
+        data = response.json()
+        issues_data = data['payload']['issues']
+        return issues_data
+    except requests.exceptions.RequestException as e:
+        print(f"Error while fetching latest issue for a given time : {e}")
 
 
 def getSpanRawdata(issue_id, incident_id, span_id):

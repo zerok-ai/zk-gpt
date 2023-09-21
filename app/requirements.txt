@@ -7,3 +7,4 @@ langchain==0.0.270
 tiktoken==0.4.0 
 pinecone-client==2.2.2
 psycopg2-binary==2.9.7
+apscheduler==3.10.4
