@@ -105,8 +105,7 @@ class QNAEventStrategy(EventHandlingStrategy):
             langchian_inference = langChainInferenceProvider.get_user_query_gpt_langchain_inference(issue_id,
                                                                                                     incident_id,
                                                                                                     custom_data)
-            print("langchain inference : \n")
-            print(langchian_inference)
+
             upsert_issue_context(issue_id, incident_id, issue_context)
             event_response = dict(type=EventType.QNA.value, response=str(langchian_inference['user_query_response']), query=query)
 
