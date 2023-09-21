@@ -91,7 +91,7 @@ def getIssueIncidents(issue_id):
 
 def getLatestIssuesData():
     url = f"http://{axon_host}/v1/c/axon/issue"
-    params = {"limit": 50, "offset": 0, "st": "-15m"}
+    params = {"limit": 50, "offset": 0, "st": "-100m"}
 
     try:
         response = requests.get(url, params=params)

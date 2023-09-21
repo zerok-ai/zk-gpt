@@ -622,29 +622,27 @@ def get_last_issue_inferenced_timestamp():
     return None
 
 
-def get_issues_zero_count_inference_in_db(issues_list):
+def get_issues_inferred_already_in_db(issues_list):
 
     db_params = get_postgres_db_params()
     conn = psycopg2.connect(**db_params)
     cur = conn.cursor()
 
     query = """
-        SELECT issue_id, COUNT(*) AS row_count
-        FROM public.issue_incident_inference
-        WHERE issue_id IN ({})
-        GROUP BY issue_id;
+        SELECT issue_id, COUNT(*) AS row_count 
+        FROM public.issue_incident_inference 
+        WHERE issue_id IN ({}) GROUP BY issue_id;
     """.format(', '.join(["'{}'".format(issue) for issue in issues_list]))
 
     try:
 
         cur.execute(query)
         results = cur.fetchall()
-        issue_inference_zero_count = []
+        issues_inferred_already = []
         for row in results:
-            print(f"Issue ID: {row[0]}, Row Count: {row[1]}")
-            if row[1] is None:
-                issue_inference_zero_count.append(row[0])
-        return issue_inference_zero_count
+            if row[1] is not None:
+                issues_inferred_already.append(row[0])
+        return issues_inferred_already
     except Exception as e:
         print(f"Error occurred while fetching issue inferences : {e}")
         return []
