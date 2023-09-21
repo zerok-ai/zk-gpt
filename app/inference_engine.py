@@ -57,8 +57,7 @@ def get_langchain_inference(issue_id, incident_id):
     custom_data = {"issue_data": str(issue_summary["issue_title"]), "trace_data": str(filtered_spans_map),
                    "exception_data": str(exception_map), "req_res_data": str(req_res_payload_map),
                    "issue_prompt": "You are a backend developer AI assistant. Your task is to figure out why an issue happened based the exception,trace,request respone payload data's presented to you in langchain sequential chain manner, and present it in a concise manner."}
-    print("----------------custom data--------------------------------------\n")
-    print(custom_data)
+
     # get langchain inference
     langchian_inference = langChainInferenceProvider.get_gpt_langchain_inference(issue_id, incident_id, custom_data)
 

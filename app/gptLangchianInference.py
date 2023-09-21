@@ -24,8 +24,6 @@ class LangChainInference:
                                                               "final_summary"])
 
             final_issue_inference = overall_chain(custom_data)
-            print("final summary : \n")
-            print(final_issue_inference)
             return final_issue_inference
         except Exception as e:
             print(f"An error occurred: {e}")
