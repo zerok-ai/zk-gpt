@@ -616,3 +616,39 @@ def get_postgres_db_params():
         'port': postgres_port
     }
     return db_params
+
+
+def get_last_issue_inferenced_timestamp():
+    return None
+
+
+def get_issues_inferred_already_in_db(issues_list):
+
+    db_params = get_postgres_db_params()
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+
+    query = """
+        SELECT issue_id, COUNT(*) AS row_count 
+        FROM public.issue_incident_inference 
+        WHERE issue_id IN ({}) GROUP BY issue_id;
+    """.format(', '.join(["'{}'".format(issue) for issue in issues_list]))
+
+    try:
+
+        cur.execute(query)
+        results = cur.fetchall()
+        issues_inferred_already = []
+        for row in results:
+            if row[1] is not None:
+                issues_inferred_already.append(row[0])
+        return issues_inferred_already
+    except Exception as e:
+        print(f"Error occurred while fetching issue inferences : {e}")
+        return []
+    finally:
+        # Close the cursor and connection
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
