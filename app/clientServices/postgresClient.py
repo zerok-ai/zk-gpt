@@ -582,23 +582,19 @@ def get_user_conversation_events(issue_id, limit, offset):
         rows = cur.fetchall()
 
         results = []
-        print("---------------results--------------------------------------------------\n")
-        print(rows)
         for row in rows:
-            print("---------------rows--------------------------------------------------\n")
-            print(row[1])
-            event_request = pickle.loads(row[3])
+            event_request = pickle.loads(row[4])
             event_response = pickle.loads(row[5])
+            event = event_response
             results.append({
                 'issueId': row[1],
                 'incidentId': row[2],
-                'event_type': row[4],
-                'event_request': event_request,
-                'event_response': event_response,
-                'created_at': row[7]
+                'event': event,
+                'created_at': row[6]
             })
 
-        return total_count, results
+        reverse_results = results[::-1]
+        return total_count, reverse_results
 
     except requests.exceptions.RequestException as e:
         print(f"Error occurred fetching user inferences for an {issue_id} with exception : {e}")
@@ -620,3 +616,39 @@ def get_postgres_db_params():
         'port': postgres_port
     }
     return db_params
+
+
+def get_last_issue_inferenced_timestamp():
+    return None
+
+
+def get_issues_inferred_already_in_db(issues_list):
+
+    db_params = get_postgres_db_params()
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+
+    query = """
+        SELECT issue_id, COUNT(*) AS row_count 
+        FROM public.issue_incident_inference 
+        WHERE issue_id IN ({}) GROUP BY issue_id;
+    """.format(', '.join(["'{}'".format(issue) for issue in issues_list]))
+
+    try:
+
+        cur.execute(query)
+        results = cur.fetchall()
+        issues_inferred_already = []
+        for row in results:
+            if row[1] is not None:
+                issues_inferred_already.append(row[0])
+        return issues_inferred_already
+    except Exception as e:
+        print(f"Error occurred while fetching issue inferences : {e}")
+        return []
+    finally:
+        # Close the cursor and connection
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()

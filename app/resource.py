@@ -194,7 +194,7 @@ def get_incident_likely_cause(issue_id, incident_id):
     inference_db, incident_id_db = postgresClient.check_if_inference_already_present_for_issue(issue_id)
 
     if inference_db is not None and incident_id_db is not None:
-        return response_formatter.get_formatted_inference_response(issue_id, incident_id_db, inference_db)
+        return issue_id, incident_id_db, response_formatter.get_formatted_inference_response(issue_id, incident_id_db, inference_db)
 
     if incident_id is None or incident_id == "":
         # fetch latest incident_id for the issue
@@ -210,7 +210,7 @@ def get_incident_likely_cause(issue_id, incident_id):
     inference = inference_engine.generate_and_store_inference(issue_id,
                                                               incident_id)  # check update or insert logic also
 
-    return response_formatter.get_formatted_inference_response(issue_id, incident_id, inference)
+    return issue_id, incident_id, response_formatter.get_formatted_inference_response(issue_id, incident_id, inference)
 
 
 def get_user_conversation_events(issue_id, limit, offset):
@@ -218,7 +218,7 @@ def get_user_conversation_events(issue_id, limit, offset):
     return total_count, user_conserve_events_response
 
 
-def process_incident_event_and_get_event_response(issue_id, incident_id, event_type, event_request):
+def process_incident_event_and_get_event_response(issue_id, incident_id, event_type, event):
     # understand the event type
     # if event type is :
     # "QNA" then push fetch the context and fetch the pinecone vectors and also eventRequest as prompt to GPT
@@ -226,6 +226,6 @@ def process_incident_event_and_get_event_response(issue_id, incident_id, event_t
     strategy_map = event_type_handler.strategy_map
     if event_type in strategy_map:
         strategy = strategy_map[event_type]
-        return strategy.handle_event(issue_id, incident_id, event_type, event_request)
+        return strategy.handle_event(issue_id, incident_id, event_type, event)
     else:
         raise Exception("Event type : {} is not supported".format(event_type))
