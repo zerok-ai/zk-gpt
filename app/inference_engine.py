@@ -1,6 +1,7 @@
 import client
 import gptLangchianInference
 import pineconeInteraction
+from app.slack import slack_integration
 from clientServices import postgresClient
 
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
@@ -17,6 +18,9 @@ def generate_and_store_inference(issue_id, incident_id):
 
     # store in DB
     postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference)
+
+    # slack integration
+    slack_integration.store_inference_for_reporting(issue_id, incident_id, inference)
 
     return inference
 
