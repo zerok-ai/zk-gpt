@@ -19,6 +19,8 @@ data:
     postgres_db : {{ .Values.postgres.db }}
     postgres_user : {{ .Values.postgres.user }}
     postgres_password : {{ .Values.postgres.password }}
+    wsp_host : {{ .Values.wsp.host }}
+    zk_slack_host : {{ .Values.slack.host }}
 ---
 apiVersion: v1
 kind: Service
