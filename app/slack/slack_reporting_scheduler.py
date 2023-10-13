@@ -1,8 +1,8 @@
-from apscheduler.schedulers.background import BackgroundScheduler
-from app.clientServices import postgresClient, wsp_client
-from app import client
-from app import inference_engine
 from concurrent.futures import ThreadPoolExecutor
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from app.clientServices import postgresClient, wsp_client
 
 
 def publish_issue_inference_slack_report(issue_incident_dict):
@@ -13,7 +13,8 @@ def publish_issue_inference_slack_report(issue_incident_dict):
         inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
         if inference is None:
             return
-        wsp_client.publish_inference_to_slack(issue_id, incident_id,inference)
+        # TODO :: fetch and store issue occurrence timestamp
+        wsp_client.publish_inference_to_slack(issue_id, incident_id,inference, "")
         # update the status of the slack reporting
         postgresClient.update_slack_reporting_status(issue_id, incident_id,True)
     except Exception as e:
