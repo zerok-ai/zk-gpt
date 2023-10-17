@@ -12,15 +12,14 @@ zk_slack_host = config.configuration.get("zk_slack_host", "localhost:8080")
 wsp_host = config.configuration.get("wsp_host", "localhost:8080")
 
 
-def publish_inference_to_slack(issue_id, incident_id, inference, issueTimeStamp):
+def publish_inference_to_slack(issue_id, incident_id, inference, issue_title):
     url = wsp_host
     payload = {
         "issueId": issue_id,
         "incidentId": incident_id,
+        "issueTitle": issue_title,
         "inference": inference,
-        "issueTimestamp": issueTimeStamp,
-        "clusterId": cluster_id,
-        "issueUrl": "issueUrl"
+        "clusterId": cluster_id
     }
     headers = {
         'X-PROXY-DESTINATION': zk_slack_host,

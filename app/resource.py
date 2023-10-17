@@ -229,3 +229,7 @@ def process_incident_event_and_get_event_response(issue_id, incident_id, event_t
         return strategy.handle_event(issue_id, incident_id, event_type, event)
     else:
         raise Exception("Event type : {} is not supported".format(event_type))
+
+
+def clear_slack_reporting():
+    postgresClient.clear_slack_reporting_for_demo()

@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 import resource
 import config
 import uuid
-from issueInferenceGenerationScheduler import issue_scheduler
+from app.scheduler.issue_inference_generation_scheduler import issue_scheduler
 
 app = Flask(__name__)
 
@@ -122,6 +122,10 @@ def get_all_issue_inferences(issue_id):
     allUserInferences = resource.getAllIssueInferences(issue_id, limit, offset)
     return jsonify({"payload": {"issueId": issue_id, "UserInferences": allUserInferences}})
 
+@app.route('/v1/c/gpt/clearReporting', methods=['PUT'])
+def clear_slack_reporting():
+    resource.clear_slack_reporting()
+    return '', 200
 
 # Load config and Fetch the secrets from the server
 def fetch_secrets_and_load_config():

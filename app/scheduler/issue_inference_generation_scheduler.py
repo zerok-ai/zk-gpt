@@ -1,7 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from clientServices import postgresClient
-import client
-import inference_engine
+from app.clientServices import postgresClient
+from app import client
+from app import inference_engine
 from concurrent.futures import ThreadPoolExecutor
 
 

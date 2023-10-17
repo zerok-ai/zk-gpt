@@ -10,11 +10,11 @@ def publish_issue_inference_slack_report(issue_incident_dict):
     incident_id = issue_incident_dict["incident_id"]
     try:
         # fetch inference
-        inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
+        inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, incident_id)
         if inference is None:
             return
-        # TODO :: fetch and store issue occurrence timestamp
-        wsp_client.publish_inference_to_slack(issue_id, incident_id,inference, "")
+
+        wsp_client.publish_inference_to_slack(issue_id, incident_id,inference, issue_title)
         # update the status of the slack reporting
         postgresClient.update_slack_reporting_status(issue_id, incident_id,True)
     except Exception as e:

@@ -1,10 +1,7 @@
-from app import client
-from app import gptLangchianInference
-from app import pineconeInteraction
 from app.clientServices import postgresClient
 
 
-def store_inference_for_reporting(issue_id, incident_id,inference):
+def store_inference_for_reporting(issue_id, incident_id):
     # check if it is present in DB
     issue_id_db, incident_id_db = postgresClient.check_if_reporting_already_present_for_issue(issue_id)
     if issue_id_db is not None:
