@@ -2,8 +2,8 @@ from flask import Flask, jsonify, request
 import resource
 import config
 import uuid
-from scheduler.issue_inference_generation_scheduler import issue_scheduler
-from slack.slack_reporting_scheduler import slack_reporting_scheduler
+from issue_inference_generation_scheduler import issue_scheduler
+from slack_reporting_scheduler import slack_reporting_scheduler
 
 app = Flask(__name__)
 

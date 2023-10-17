@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from app.clientServices import postgresClient, wsp_client
+from clientServices import postgresClient, wsp_client
 
 
 def publish_issue_inference_slack_report(issue_incident_dict):
