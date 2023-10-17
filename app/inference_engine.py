@@ -1,7 +1,7 @@
 import client
 import gptLangchianInference
 import pineconeInteraction
-from slack import slack_integration
+import slack_integration
 from clientServices import postgresClient
 
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
