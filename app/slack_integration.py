@@ -1,4 +1,4 @@
-from app.clientServices import postgresClient
+from clientServices import postgresClient
 
 
 def store_inference_for_reporting(issue_id, incident_id):
