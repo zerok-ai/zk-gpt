@@ -3,6 +3,7 @@ import resource
 import config
 import uuid
 from app.scheduler.issue_inference_generation_scheduler import issue_scheduler
+from app.slack.slack_reporting_scheduler import slack_reporting_scheduler
 
 app = Flask(__name__)
 
@@ -142,5 +143,6 @@ if __name__ == '__main__':
     if fetch_secrets_and_load_config():
         # start issue scheduler
         issue_scheduler.start()
+        slack_reporting_scheduler.start()
         # Start the application only if the config and secrets are fetched successfully
         app.run(host='0.0.0.0', port=80)

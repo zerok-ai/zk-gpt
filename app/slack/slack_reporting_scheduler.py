@@ -35,5 +35,5 @@ def task():
         executor.map(publish_issue_inference_slack_report, issues_incident_list)
 
 
-issue_scheduler = BackgroundScheduler()
-issue_scheduler.add_job(task, 'interval', minutes=3)
+slack_reporting_scheduler = BackgroundScheduler()
+slack_reporting_scheduler.add_job(task, 'interval', minutes=3)
