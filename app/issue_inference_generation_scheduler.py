@@ -21,6 +21,10 @@ def task():
     # get last issue inferenced time stamp
     issues_data_list = client.getLatestIssuesData()
 
+    if issues_data_list is None or len(issues_data_list) == 0:
+        print("scheduler : No new issues found to infer")
+        return
+
     issues = [issue['issue_hash'] for issue in issues_data_list]
     issue_dict = {}
 
