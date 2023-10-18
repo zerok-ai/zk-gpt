@@ -652,6 +652,7 @@ def update_slack_reporting_status(issue_id, incident_id, status):
             cur.close()
             conn.close()
 
+
 def clear_slack_reporting_for_demo():
     db_params = get_postgres_db_params()
     conn = psycopg2.connect(**db_params)
@@ -662,6 +663,37 @@ def clear_slack_reporting_for_demo():
                 SET reporting_status = False
             """
         cur.execute(query)
+        conn.commit()
+        print("Status updated successfully.")
+    except (Exception, psycopg2.Error) as error:
+        print("Error updating status in PostgreSQL:", error)
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+
+
+def clear_all_issue_data_for_demo():
+    db_params = get_postgres_db_params()
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+    try:
+        truncate_table_query1 = """
+                    TRUNCATE TABLE public.issue_incident_inference;
+                """
+        cur.execute(truncate_table_query1)
+        truncate_table_query2 = """
+                    TRUNCATE TABLE public.slack_inference_report;
+                """
+        cur.execute(truncate_table_query2)
+        truncate_table_query3 = """
+                    TRUNCATE TABLE public.issue_incident_context;
+                """
+        cur.execute(truncate_table_query3)
+        truncate_table_query4 = """
+                    TRUNCATE TABLE public.issue_user_conversation_events;
+                """
+        cur.execute(truncate_table_query4)
         conn.commit()
         print("Status updated successfully.")
     except (Exception, psycopg2.Error) as error:

@@ -123,10 +123,18 @@ def get_all_issue_inferences(issue_id):
     allUserInferences = resource.getAllIssueInferences(issue_id, limit, offset)
     return jsonify({"payload": {"issueId": issue_id, "UserInferences": allUserInferences}})
 
+
 @app.route('/v1/c/gpt/clearReporting', methods=['PUT'])
 def clear_slack_reporting():
     resource.clear_slack_reporting()
     return '', 200
+
+
+@app.route('/v1/c/gpt/clearAllIssueData', methods=['PUT'])
+def clear_all_issue_data():
+    resource.clear_all_issue_data_for_demo()
+    return '', 200
+
 
 # Load config and Fetch the secrets from the server
 def fetch_secrets_and_load_config():
