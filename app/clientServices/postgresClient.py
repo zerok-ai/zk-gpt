@@ -547,7 +547,7 @@ def check_if_reporting_already_present_for_issue(issue_id):
 
     try:
         # Execute the check query with the issue_id as a parameter and rca = True
-        cur.execute(query, issue_id)
+        cur.execute(query, (issue_id,))
 
         result = cur.fetchone()
 
@@ -576,15 +576,14 @@ def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id):
         # Define the data for the insert
         data = {
             "issue_id": issue_id,
-            "incident_id": incident_id,
-            "reporting_status": False
+            "incident_id": incident_id
         }
 
         # SQL query for inserting data
         insert_query = """
-            INSERT INTO public.slack_inference_report 
+            INSERT INTO public.slack_inference_report
             (issue_id, incident_id, reporting_status, issue_timestamp, report_timestamp,created_at)
-            VALUES (%(issue_id)s, %(incident_id)s, %(reporting_status)s, NOW(), NOW(),NOW());
+            VALUES (%(issue_id)s, %(incident_id)s, False, NOW(), NOW(),NOW());
         """
 
         # Establish a connection to the PostgresSQL database
@@ -595,7 +594,7 @@ def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id):
         cur.execute(insert_query, data)
         # Commit the transaction
         conn.commit()
-        print("Data inserted successfully!")
+        print(f"Data inserted successfully into reporting DB for! for issue: {issue_id} and incidentId: {incident_id}")
 
     except requests.exceptions.RequestException as e:
         print(f"Error occurred While inserting user inference data to postgres : {e}")

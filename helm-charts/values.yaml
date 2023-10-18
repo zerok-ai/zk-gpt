@@ -18,7 +18,7 @@ axon:
   host: "zk-axon.zk-client.svc.cluster.local"
 
 wsp:
-  host: "http://zk-wsp-client.zk-client.svc.cluster.local"
+  host: "http://zk-wsp-client.zk-client.svc.cluster.local/request"
 
 zkSlack:
   host: "http://zk-slack.zkcloud.svc.cluster.local:80/v1/i/slack/publish/inference"

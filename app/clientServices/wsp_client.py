@@ -1,5 +1,4 @@
 import json
-import redis
 import requests
 import config
 
@@ -27,7 +26,11 @@ def publish_inference_to_slack(issue_id, incident_id, inference, issue_title):
         'Content-Type': 'application/json'
     }
     try:
-        response = requests.request("GET", url, headers=headers, data=payload)
+        # Convert the payload to JSON
+        payload_json = json.dumps(payload)
+        print(f"pushing inference data to slack for issueId : {issue_id}")
+        # Make a POST request
+        response = requests.post(url, headers=headers, data=payload_json)
         response.raise_for_status()
     except Exception as e:
         print(f"An error occurred while reporting inference to slack : {e}")
