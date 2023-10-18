@@ -530,6 +530,7 @@ def get_issues_inferred_already_in_db(issues_list):
 
 
 def check_if_reporting_already_present_for_issue(issue_id):
+    print("checking if issue is already reported")
     # Database connection parameters
     db_params = get_postgres_db_params()
     # Connect to the PostgresSQL database
@@ -540,21 +541,22 @@ def check_if_reporting_already_present_for_issue(issue_id):
 
     # SQL query to check for the existence of a record with the given issue_id
     query = """
-            SELECT issue_id,incident_id FROM public.slack_inference_report
+            SELECT issue_id FROM public.slack_inference_report
             WHERE issue_id = %s ORDER BY created_at DESC LIMIT 1
         """
 
     try:
         # Execute the check query with the issue_id as a parameter and rca = True
-        cur.execute(query, (issue_id,))
+        cur.execute(query, issue_id)
 
         result = cur.fetchone()
 
         if result is not None:
-            issue_id, incident_id = result
-            return issue_id, incident_id
+            print(result)
+            issue_id = result
+            return issue_id
         else:
-            return None, None
+            return None
 
     except psycopg2.Error as e:
         print(f"Error occurred While fetching issueid in postgres : {e}")
@@ -582,7 +584,7 @@ def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id):
         insert_query = """
             INSERT INTO public.slack_inference_report 
             (issue_id, incident_id, reporting_status, issue_timestamp, report_timestamp,created_at)
-            VALUES (%(issue_id)s, %(incident_id)s, %(reporting_status), NOW(), NOW(),NOW());
+            VALUES (%(issue_id)s, %(incident_id)s, %(reporting_status)s, NOW(), NOW(),NOW());
         """
 
         # Establish a connection to the PostgresSQL database

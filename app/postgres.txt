@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS public.slack_inference_report (
     issue_id                VARCHAR(255) NOT NULL,
     incident_id             VARCHAR(255) NOT NULL,
     reporting_status        BOOLEAN NOT NULL,
-    issue_timestamp         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    report_timestamp        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    created_at				TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    CONSTRAINT unique_issue_incident_context UNIQUE (issue_id, incident_id)
+    issue_timestamp         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    report_timestamp        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at				TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_slack_incident_context UNIQUE (issue_id, incident_id)
 );
 
