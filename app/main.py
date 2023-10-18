@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 import resource
 import config
 import uuid
-from issue_inference_generation_scheduler import issue_scheduler
+from issue_inference_generation_scheduler import issue_scheduler, task
 from slack_reporting_scheduler import slack_reporting_scheduler
 
 app = Flask(__name__)
@@ -135,6 +135,13 @@ def clear_all_issue_data():
     resource.clear_all_issue_data_for_demo()
     return '', 200
 
+@app.route('/trigger_task', methods=['POST'])
+def trigger_task_manually():
+    try:
+        task()  # Manually trigger the task
+        return jsonify({"message": "Task triggered successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Load config and Fetch the secrets from the server
 def fetch_secrets_and_load_config():
@@ -153,4 +160,4 @@ if __name__ == '__main__':
         issue_scheduler.start()
         slack_reporting_scheduler.start()
         # Start the application only if the config and secrets are fetched successfully
-        app.run(host='0.0.0.0', port=80)
+        app.run(host='0.0.0.0', port=81)
