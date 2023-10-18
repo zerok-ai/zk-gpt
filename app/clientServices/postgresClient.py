@@ -645,7 +645,7 @@ def update_slack_reporting_status(issue_id, incident_id, status):
         """
         cur.execute(query, (status, issue_id, incident_id))
         conn.commit()
-        print("Status updated successfully.")
+        print(f"Reporting Status updated successfully for issue: {issue_id} as status: {status} ")
     except (Exception, psycopg2.Error) as error:
         print("Error updating status in PostgreSQL:", error)
     finally:

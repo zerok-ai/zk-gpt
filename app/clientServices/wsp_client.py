@@ -30,7 +30,14 @@ def publish_inference_to_slack(issue_id, incident_id, inference, issue_title):
         payload_json = json.dumps(payload)
         print(f"pushing inference data to slack for issueId : {issue_id}")
         # Make a POST request
+        print("url"+ url)
+        print("clusterID"+ cluster_id)
+        print("headers")
+        print(headers)
+        print("payload")
+        print(payload)
         response = requests.post(url, headers=headers, data=payload_json)
+        print(f"inference pushed to slack for issueId : {issue_id}")
         response.raise_for_status()
     except Exception as e:
         print(f"An error occurred while reporting inference to slack : {e}")
