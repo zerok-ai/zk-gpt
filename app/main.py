@@ -124,18 +124,18 @@ def get_all_issue_inferences(issue_id):
     return jsonify({"payload": {"issueId": issue_id, "UserInferences": allUserInferences}})
 
 
-@app.route('/v1/c/gpt/clearReporting', methods=['PUT'])
+@app.route('/v1/c/gpt/clearReporting', methods=['POST'])
 def clear_slack_reporting():
     resource.clear_slack_reporting()
     return '', 200
 
 
-@app.route('/v1/c/gpt/clearAllIssueData', methods=['PUT'])
+@app.route('/v1/c/gpt/clearAllIssueData', methods=['POST'])
 def clear_all_issue_data():
     resource.clear_all_issue_data_for_demo()
     return '', 200
 
-@app.route('/trigger_task', methods=['POST'])
+@app.route('/v1/c/gpt/triggerTask', methods=['POST'])
 def trigger_task_manually():
     try:
         task()  # Manually trigger the task
