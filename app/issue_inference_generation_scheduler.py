@@ -25,6 +25,7 @@ def task():
         print("scheduler : No new issues found to infer")
         return
 
+    print(issues_data_list)
     issues = [issue['issue_hash'] for issue in issues_data_list]
     issue_dict = {}
 
@@ -34,6 +35,10 @@ def task():
         issue_hash = item["issue_hash"]
         issue_dict[issue_hash] = item
         incidents[issue_hash] = item["incidents"]
+
+    if len(issues) == 0 or issues is None:
+        print("scheduler : No new issues found to infer")
+        return
 
     # check if the issue is inferenced present in the DB
     issues_already_inferred = postgresClient.get_issues_inferred_already_in_db(issues)
