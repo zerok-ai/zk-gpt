@@ -94,7 +94,7 @@ class Config:
                 "payload": {
                     "apiKey": "px-api-466ba2de-43d0-4d51-a678-005a5ecfb1d9",
                     "cloudAddr": "px.loadcloud01.getanton.com:443",
-                    "clusterId": "d6ab4cb1-a202-4c48-ae42-f7e480063663"
+                    "clusterId": "56d95a4d-47e6-4acb-88cd-2588df9b6176"
                 }
             }
         except Exception as e:

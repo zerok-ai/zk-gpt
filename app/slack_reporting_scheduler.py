@@ -22,7 +22,7 @@ def publish_issue_inference_slack_report(issue_incident_dict):
         postgresClient.update_slack_reporting_status(issue_id, incident_id, False)
 
 
-def task():
+def reporting_task():
     print("Running slack report scheduler")
     # fetch new issues to be reported
     issues_incident_list = postgresClient.fetch_issues_to_be_reported_to_slack()
@@ -36,4 +36,4 @@ def task():
 
 
 slack_reporting_scheduler = BackgroundScheduler()
-slack_reporting_scheduler.add_job(task, 'interval', minutes=3)
+slack_reporting_scheduler.add_job(reporting_task, 'interval', minutes=3)

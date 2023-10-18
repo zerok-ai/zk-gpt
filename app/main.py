@@ -3,7 +3,7 @@ import resource
 import config
 import uuid
 from issue_inference_generation_scheduler import issue_scheduler, task
-from slack_reporting_scheduler import slack_reporting_scheduler
+from slack_reporting_scheduler import slack_reporting_scheduler, reporting_task
 
 app = Flask(__name__)
 
@@ -140,6 +140,14 @@ def trigger_task_manually():
     try:
         task()  # Manually trigger the task
         return jsonify({"message": "Task triggered successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/v1/c/gpt/triggerReporting', methods=['POST'])
+def trigger_reporting_manually():
+    try:
+        reporting_task()  # Manually trigger the task
+        return jsonify({"message": "Reporting Task triggered successfully."}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
