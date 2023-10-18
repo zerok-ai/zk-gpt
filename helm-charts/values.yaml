@@ -21,7 +21,7 @@ wsp:
   host: "http://zk-wsp-client.zk-client.svc.cluster.local"
 
 zkSlack:
-  host: "http://zk-slack.zkcloud.svc.cluster.local:80/i/slack/publish/inference"
+  host: "http://zk-slack.zkcloud.svc.cluster.local:80/v1/i/slack/publish/inference"
 
 
 
