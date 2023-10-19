@@ -166,9 +166,9 @@ def get_time_stamp_from_datatime(date_time_str):
         print("dateTimeString is NONE")
         raise Exception("invalid date time string")
     try:
-        timestamp_str = date_time_str
-        timestamp_dt = datetime.fromisoformat(timestamp_str)
-        timestamp_pg = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+        timestamp_str = date_time_str.rstrip('Z')
+        timestamp_dt = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
+        timestamp_pg = timestamp_dt.strftime('%Y-%m-%d %H:%M:%S.%f')
         return timestamp_pg
     except Exception as e:
         print(f"Error formating datetime to timestamp datetime : {date_time_str} as error : {str(e)}")
