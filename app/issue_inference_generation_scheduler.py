@@ -19,6 +19,20 @@ def generate_inference(issue_incident_dict):
         print(f"Error generating inference for issue {issue_incident_dict}: {str(e)}")
 
 
+def get_time_stamp_from_datatime(date_time_str):
+    if date_time_str is None:
+        print("dateTimeString is NONE")
+        raise Exception("invalid date time string")
+    try:
+        timestamp_str = date_time_str.rstrip('Z')
+        timestamp_dt = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
+        timestamp_pg = timestamp_dt.strftime('%Y-%m-%d %H:%M:%S.%f')
+        return timestamp_pg
+    except Exception as e:
+        print(f"Error formating datetime to timestamp datetime : {date_time_str} as error : {str(e)}")
+        raise Exception(f"Error formating datetime to timestamp datetime : {date_time_str} as error : {str(e)}")
+
+
 def task():
     print("Running Issue Inference Scheduler")
     # fetch new issues from that timestamp
@@ -57,8 +71,7 @@ def task():
 
     for issueId in issues_already_inferred:
         timestamp_str = issue_data_dict[issueId]["last_seen"]
-        timestamp_dt = datetime.fromisoformat(timestamp_str)
-        timestamp_pg = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+        timestamp_pg = get_time_stamp_from_datatime(timestamp_str)
         issue_last_seen_dict[issueId] = timestamp_pg
         issue_last_seen_dict_list.append({"issue_id": issueId, "last_seen": timestamp_pg})
     postgresClient.update_last_seen_for_issue_list(issue_last_seen_dict_list)
@@ -71,7 +84,8 @@ def task():
     new_issue_incident_dict = []
     for item in new_issues_to_infer:
         if len(incidents[item]) > 0:
-            new_issue_incident_dict.append({"issue_id": item, "incident_id": incidents[item][0], "issue_data": issue_data_dict[item]})
+            new_issue_incident_dict.append(
+                {"issue_id": item, "incident_id": incidents[item][0], "issue_data": issue_data_dict[item]})
 
     print(f"Found {new_issue_incident_dict} new issues to infer: ")
     with ThreadPoolExecutor() as executor:
@@ -79,4 +93,4 @@ def task():
 
 
 issue_scheduler = BackgroundScheduler()
-issue_scheduler.add_job(task, 'interval', minutes=3)
+issue_scheduler.add_job(task, 'interval', minutes=2)
