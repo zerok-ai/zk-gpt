@@ -612,7 +612,7 @@ def check_if_reporting_already_present_for_issue(issue_id):
             conn.close()
 
 
-def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id):
+def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id, clear_reporting_timestamp):
     db_params = get_postgres_db_params()
     # Establish a connection to the PostgresSQL database
     conn = psycopg2.connect(**db_params)
@@ -624,14 +624,15 @@ def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id):
         # Define the data for the insert
         data = {
             "issue_id": issue_id,
-            "incident_id": incident_id
+            "incident_id": incident_id,
+            "clear_reporting_timestamp" : clear_reporting_timestamp
         }
 
         # SQL query for inserting data
         insert_query = """
             INSERT INTO public.slack_inference_report
             (issue_id, incident_id, reporting_status, issue_timestamp, report_timestamp,created_at, clear_reporting_timestamp)
-            VALUES (%(issue_id)s, %(incident_id)s, False, NOW(), NOW(),NOW(), NOW());
+            VALUES (%(issue_id)s, %(incident_id)s, False, NOW(), NOW(),NOW(), %(clear_reporting_timestamp)s);
         """
 
 

@@ -11,7 +11,7 @@ def generate_inference(issue_incident_dict):
         issue_id = issue_incident_dict["issue_id"]
         incident_id = issue_incident_dict["incident_id"]
         issue_data = issue_incident_dict["issue_data"]
-        print(f"Generating inference for issue {issue_id} and incident {incident_id}")
+        print(f"Generating Inference for Issue {issue_id} and Incident {incident_id}")
 
         print(f"printing issue data for scheduler {issue_data}")
         inference_engine.generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data)
@@ -20,13 +20,13 @@ def generate_inference(issue_incident_dict):
 
 
 def task():
-    print("Running issue scheduler")
+    print("Running Issue Inference Scheduler")
     # fetch new issues from that timestamp
     # get last issue inferenced time stamp
     issues_data_list = client.getLatestIssuesData()
 
     if issues_data_list is None or len(issues_data_list) == 0:
-        print("scheduler : No new issues found to infer")
+        print("issue scheduler : No new issues found to infer")
         return
 
     print(issues_data_list)
@@ -45,7 +45,7 @@ def task():
         incidents[issue_hash] = item["incidents"]
 
     if len(issues) == 0 or issues is None:
-        print("scheduler : No new issues found to infer")
+        print("issue scheduler : No new issues found to infer")
         return
 
     # check if the issue is inferred and  present in the DB
@@ -65,7 +65,7 @@ def task():
 
     new_issues_to_infer = list(set(issues) - set(issues_already_inferred))
     if len(new_issues_to_infer) == 0:
-        print("scheduler : No new issues found to infer")
+        print("issue scheduler : No new issues found to infer")
         return
 
     new_issue_incident_dict = []

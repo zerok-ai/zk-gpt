@@ -28,7 +28,7 @@ def generate_and_store_inference(issue_id, incident_id):
 
     print(f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
     # slack integration
-    slack_integration.store_inference_for_reporting(issue_id, incident_id)
+    slack_integration.store_inference_for_reporting(issue_id, incident_id, issue_last_seen)
 
     return inference
 
@@ -55,7 +55,7 @@ def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data
 
     print(f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
     # slack integration
-    slack_integration.store_inference_for_reporting(issue_id, incident_id)
+    slack_integration.store_inference_for_reporting(issue_id, incident_id, issue_last_seen)
 
     return inference
 
@@ -157,7 +157,6 @@ def vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchi
 
 
 def get_time_stamp_from_datatime(date_time_str):
-    print("i am fetcihing time stamp ")
     timestamp_str = date_time_str
     timestamp_dt = datetime.fromisoformat(timestamp_str)
     timestamp_pg = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S.%f")

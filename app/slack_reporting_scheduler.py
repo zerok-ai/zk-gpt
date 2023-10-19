@@ -34,7 +34,7 @@ def reporting_task():
     issues_incident_list = postgresClient.fetch_issues_to_be_reported_to_slack()
 
     if len(issues_incident_list) == 0:
-        print("report scheduler : No new issues found to report")
+        print("reporting scheduler : No new issues found to report")
         return
     print(f"Found {issues_incident_list} new issues to report")
     with ThreadPoolExecutor() as executor:
