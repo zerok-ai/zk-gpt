@@ -42,4 +42,4 @@ def reporting_task():
 
 
 slack_reporting_scheduler = BackgroundScheduler()
-slack_reporting_scheduler.add_job(reporting_task, 'interval', minutes=1)
+slack_reporting_scheduler.add_job(reporting_task, 'interval', seconds=30)

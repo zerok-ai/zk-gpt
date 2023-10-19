@@ -93,4 +93,4 @@ def task():
 
 
 issue_scheduler = BackgroundScheduler()
-issue_scheduler.add_job(task, 'interval', minutes=2)
+issue_scheduler.add_job(task, 'interval', minutes=1)
