@@ -26,6 +26,7 @@ def generate_and_store_inference(issue_id, incident_id):
     postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
                                                     issue_first_seen)
 
+    print(f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
     # slack integration
     slack_integration.store_inference_for_reporting(issue_id, incident_id)
 

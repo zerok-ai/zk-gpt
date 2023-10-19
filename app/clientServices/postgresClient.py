@@ -424,8 +424,13 @@ def insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_tit
 
 
 def insert_user_conversation_event(issue_id, incident_id, event_type, event_request, event_response):
+    db_params = get_postgres_db_params()
+    # Establish a connection to the PostgresSQL database
+    conn = psycopg2.connect(**db_params)
+    # Create a cursor
+    cur = conn.cursor()
     try:
-        db_params = get_postgres_db_params()
+
 
         # Define the data for the insert
         data = {
@@ -447,10 +452,7 @@ def insert_user_conversation_event(issue_id, incident_id, event_type, event_requ
             VALUES (%(issue_id)s, %(incident_id)s, %(event_type)s, %(event_request_bytea)s, %(event_response_bytea)s, NOW());
         """
 
-        # Establish a connection to the PostgresSQL database
-        conn = psycopg2.connect(**db_params)
-        # Create a cursor
-        cur = conn.cursor()
+
 
         # Execute the insert query with the data
         cur.execute(insert_query, data)
@@ -611,8 +613,13 @@ def check_if_reporting_already_present_for_issue(issue_id):
 
 
 def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id):
+    db_params = get_postgres_db_params()
+    # Establish a connection to the PostgresSQL database
+    conn = psycopg2.connect(**db_params)
+    # Create a cursor
+    cur = conn.cursor()
     try:
-        db_params = get_postgres_db_params()
+
 
         # Define the data for the insert
         data = {
@@ -627,10 +634,8 @@ def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id):
             VALUES (%(issue_id)s, %(incident_id)s, False, NOW(), NOW(),NOW(), NOW());
         """
 
-        # Establish a connection to the PostgresSQL database
-        conn = psycopg2.connect(**db_params)
-        # Create a cursor
-        cur = conn.cursor()
+
+
         # Execute the insert query with the data
         cur.execute(insert_query, data)
         # Commit the transaction
