@@ -8,10 +8,16 @@ from clientServices import postgresClient, wsp_client
 def publish_issue_inference_slack_report(issue_incident_dict):
     issue_id = issue_incident_dict["issue_id"]
     incident_id = issue_incident_dict["incident_id"]
+    clear_reporting_timestamp = issue_incident_dict["clear_reporting_timestamp"]
+
+    print("publish_issue_inference_slack_report"+ str(issue_incident_dict))
+
     try:
         # fetch inference
-        inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, incident_id)
+        inference, issue_title, issue_last_seen = postgresClient.check_if_inference_already_present_reporting_scheduler(issue_id, incident_id)
         if inference is None:
+            return
+        if issue_last_seen < clear_reporting_timestamp:
             return
 
         wsp_client.publish_inference_to_slack(issue_id, incident_id,inference, issue_title)

@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS public.issue_incident_inference
     issue_title             VARCHAR(255),
     inference               BYTEA,
     created_at              TIMESTAMP,
+    issue_last_seen         TIMESTAMP,
+    issue_first_seen        TIMESTAMP,
     CONSTRAINT unique_issue_incident_inference UNIQUE (issue_id, incident_id)
 );
 
@@ -39,6 +41,7 @@ CREATE TABLE IF NOT EXISTS public.slack_inference_report (
     issue_timestamp         TIMESTAMP,
     report_timestamp        TIMESTAMP,
     created_at				TIMESTAMP,
+    clear_reporting_timestamp TIMESTAMP,
     CONSTRAINT unique_slack_incident_context UNIQUE (issue_id, incident_id)
 );
 

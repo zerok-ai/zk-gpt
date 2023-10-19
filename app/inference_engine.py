@@ -3,6 +3,7 @@ import gptLangchianInference
 import pineconeInteraction
 import slack_integration
 from clientServices import postgresClient
+from datetime import datetime
 
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
 pineconeInteractionProvider = pineconeInteraction.PineconeInteraction()
@@ -18,9 +19,38 @@ def generate_and_store_inference(issue_id, incident_id):
     vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchain_inference, custom_data)
 
     issue_title = issue_summary['issue_title']
+    issue_last_seen = get_time_stamp_from_datatime(issue_summary['last_seen'])
+    issue_first_seen = get_time_stamp_from_datatime(issue_summary['first_seen'])
 
     # store in DB
-    postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title)
+    postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
+                                                    issue_first_seen)
+
+    # slack integration
+    slack_integration.store_inference_for_reporting(issue_id, incident_id)
+
+    return inference
+
+
+def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data):
+    issue_last_seen = get_time_stamp_from_datatime(issue_data["last_seen"])
+    issue_first_seen = get_time_stamp_from_datatime(issue_data["first_seen"])
+
+    # getting langchain inferences
+    issue_summary = client.getIssueSummary(issue_id)
+
+    custom_data, langchain_inference = get_langchain_inference(issue_id, incident_id, issue_summary)
+
+    inference = langchain_inference['final_summary']
+
+    # vectorize data and push to pinecone
+    vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchain_inference, custom_data)
+
+    issue_title = issue_summary['issue_title']
+
+    # store in DB
+    postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
+                                                    issue_first_seen)
 
     # slack integration
     slack_integration.store_inference_for_reporting(issue_id, incident_id)
@@ -122,3 +152,11 @@ def vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchi
     #                                                                                     "default")
     data_list = [value for value in pinecone_issue_data.values()]
     pineconeInteractionProvider.vectorize_data_and_pushto_pinecone_db(issue_id, incident_id, data_list)
+
+
+def get_time_stamp_from_datatime(date_time_str):
+    print("i am fetcihing time stamp ")
+    timestamp_str = date_time_str
+    timestamp_dt = datetime.fromisoformat(timestamp_str)
+    timestamp_pg = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+    return timestamp_pg
