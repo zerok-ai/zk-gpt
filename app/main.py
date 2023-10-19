@@ -168,4 +168,4 @@ if __name__ == '__main__':
         issue_scheduler.start()
         slack_reporting_scheduler.start()
         # Start the application only if the config and secrets are fetched successfully
-        app.run(host='0.0.0.0', port=80)
+        app.run(host='0.0.0.0', port=81)

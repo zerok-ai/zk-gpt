@@ -37,8 +37,7 @@ def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data
     issue_last_seen = get_time_stamp_from_datatime(issue_data["last_seen"])
     issue_first_seen = get_time_stamp_from_datatime(issue_data["first_seen"])
 
-    print(f"last seen: {issue_last_seen}")
-    print(f"issue first seen: {issue_first_seen}")
+    print(f"last seen: {str(issue_last_seen)}")
 
     # getting langchain inferences
     issue_summary = client.getIssueSummary(issue_id)
@@ -170,4 +169,5 @@ def get_time_stamp_from_datatime(date_time_str):
     timestamp_str = date_time_str
     timestamp_dt = datetime.fromisoformat(timestamp_str)
     timestamp_pg = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+    print("extracted time stamp")
     return timestamp_pg
