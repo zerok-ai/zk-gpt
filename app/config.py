@@ -78,6 +78,7 @@ class Config:
             print(f"Retrying in {sleep_duration} seconds... for fetching the secrets")
             time.sleep(sleep_duration)
         if self.secrets is None:
+            print("Unable to fetch zk-llm Secrets from Server")
             raise Exception("Unable to fetch zk-llm Secrets from Server")
 
     @staticmethod
@@ -88,6 +89,7 @@ class Config:
             response_data = response.json()
             data = response_data['payload']
             if data is None or data['clusterId'] is None:
+                print("cluster data is None")
                 raise Exception("cluster Id is None")
             return data
             # return {

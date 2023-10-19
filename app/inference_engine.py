@@ -67,6 +67,7 @@ def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data
 
 def get_langchain_inference(issue_id, incident_id, issue_summary):
     # fetch all the data required for langchain inference
+    print("starting langchain inference: ")
     spans_map = client.getSpansMap(issue_id, incident_id)
     exception_map = []
     req_res_payload_map = []
@@ -162,6 +163,10 @@ def vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchi
 
 
 def get_time_stamp_from_datatime(date_time_str):
+    if date_time_str is None:
+        print("dateTimeString is NONE")
+        raise Exception("invalid date time string")
+    print("extracting time stamp")
     timestamp_str = date_time_str
     timestamp_dt = datetime.fromisoformat(timestamp_str)
     timestamp_pg = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S.%f")
