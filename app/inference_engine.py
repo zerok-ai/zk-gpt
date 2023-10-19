@@ -37,6 +37,9 @@ def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data
     issue_last_seen = get_time_stamp_from_datatime(issue_data["last_seen"])
     issue_first_seen = get_time_stamp_from_datatime(issue_data["first_seen"])
 
+    print(f"last seen: {issue_last_seen}")
+    print(f"issue first seen: {issue_first_seen}")
+
     # getting langchain inferences
     issue_summary = client.getIssueSummary(issue_id)
 
@@ -48,6 +51,8 @@ def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data
     vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchain_inference, custom_data)
 
     issue_title = issue_summary['issue_title']
+
+    print(f"inference genereted succesfully for {issue_id} and now we are storign in DB")
 
     # store in DB
     postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
