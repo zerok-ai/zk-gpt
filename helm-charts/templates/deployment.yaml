@@ -67,7 +67,7 @@ spec:
         - containerPort: 80
         resources: {{- toYaml .Values.zkGpt.resources | nindent 10 }}
         volumeMounts:
-        - mountPath: /app/config
+        - mountPath: /zk/config
           name: zk-gpt-config-volume
       volumes:
       - configMap:
