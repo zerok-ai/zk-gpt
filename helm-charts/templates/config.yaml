@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "zk-gpt.fullname" . }}
+  labels:
+  {{- include "zk-gpt.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+    redis_host: {{ .Values.redis.host }}
+    redis_password: {{ .Values.redis.password }}
+    openai_key: {{ .Values.openai.apikey }}
+    max_span_raw_data_length: {{ .Values.maxspanrawdatalength }}
+    postgres_host: {{ .Values.postgres.host }}
+    pinecone_key : {{ .Values.pinecone.apikey }}
+    pinecone_index : {{ .Values.pinecone.index }}
+    axon_host: {{ .Values.axon.host }}
+    pincone_env : {{ .Values.pinecone.environment }}
+    postgres_port : {{ .Values.postgres.port }}
+    postgres_db : {{ .Values.postgres.db }}
+    postgres_user : {{ .Values.postgres.user }}
+    postgres_password : {{ .Values.postgres.password }}
