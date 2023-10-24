@@ -4,30 +4,32 @@ import config
 import uuid
 from issue_inference_generation_scheduler import issue_scheduler, task
 from slack_reporting_scheduler import slack_reporting_scheduler, reporting_task
+from fastapi import FastAPI
+import uvicorn
 
-app = Flask(__name__)
+app = FastAPI()
 
 
-@app.route('/v1/c/gpt/scenario/<scenario_id>', methods=['GET'])
+@app.get('/v1/c/gpt/scenario/<scenario_id>')
 def get_scenario(scenario_id):
     summary = resource.getScenarioSummary(scenario_id)
     return jsonify({"payload": {"summary": summary}})
 
 
-@app.route('/v1/c/gpt/issue/<issue_id>', methods=['GET'])
+@app.get('/v1/c/gpt/issue/<issue_id>')
 def get_issue(issue_id):
     summary = resource.getIssueSummary(issue_id)
     return jsonify({"payload": {"summary": summary}})
 
 
-@app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['GET'])
+@app.get('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>')
 def get_incident(issue_id, incident_id):
     rca_using_langchian_inference = bool(request.args.get('useLangchain', default=False))
     rca = resource.getIncidentRCA(issue_id, incident_id, rca_using_langchian_inference)
     return jsonify({"payload": {"rca": rca}})
 
 
-@app.route('/v1/c/gpt/incident/inference', methods=['POST'])
+@app.post('/v1/c/gpt/incident/inference')
 def get_issue_incident_inference():
     data = request.get_json()
     issue_id = data['issueId']
@@ -38,7 +40,7 @@ def get_issue_incident_inference():
     return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
 
 
-@app.route('/v1/c/gpt/incident/<issue_id>/list/events', methods=['GET'])
+@app.get('/v1/c/gpt/incident/<issue_id>/list/events')
 def get_issue_incident_list_events(issue_id):
     limit = int(request.args.get('limit', default=10))
     offset = int(request.args.get('offset', default=0))
@@ -47,7 +49,7 @@ def get_issue_incident_list_events(issue_id):
         {"payload": {"issueId": issue_id, "events": user_conserve_events_response, "total_count": total_count}})
 
 
-@app.route('/v1/c/gpt/issue/event', methods=['POST'])
+@app.post('/v1/c/gpt/issue/event')
 def ingest_and_retrieve_incident_event_response():
     data = request.get_json()
     issue_id = data['issueId']
@@ -63,7 +65,7 @@ def ingest_and_retrieve_incident_event_response():
         return jsonify({"error": "Missing 'event' parameter in the request body."}), 400
 
 
-@app.route('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>', methods=['POST'])
+@app.post('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>')
 def query_incident(issue_id, incident_id):
     data = request.get_json()
     if 'query' in data:
@@ -74,7 +76,7 @@ def query_incident(issue_id, incident_id):
         return jsonify({"error": "Missing 'query' parameter in the request body."}), 400
 
 
-@app.route('/v1/c/gpt/issue/<issue_id>/observation', methods=['POST'])
+@app.post('/v1/c/gpt/issue/<issue_id>/observation')
 def issue_observation(issue_id):
     data = request.get_json()
     print(str(data))
@@ -87,7 +89,7 @@ def issue_observation(issue_id):
         return jsonify({"error": "Missing 'query' parameter in the request body."}), 400
 
 
-@app.route('/v1/c/gpt/issue/observation', methods=['POST'])
+@app.post('/v1/c/gpt/issue/observation')
 def issue_observation_with_params():
     data = request.get_json()
     requestId = str(uuid.uuid4())
@@ -105,7 +107,7 @@ def issue_observation_with_params():
                                 "Answer": answer, "requestId": requestId}})
 
 
-@app.route('/v1/c/gpt/issue/inference/feeback', methods=['POST'])
+@app.post('/v1/c/gpt/issue/inference/feeback')
 def issue_inference_user_feedback():
     data = request.get_json()
     print(str(data))
@@ -116,7 +118,7 @@ def issue_inference_user_feedback():
     return '', 200
 
 
-@app.route('/v1/c/gpt/issue/<issue_id>/getAllinferences', methods=['GET'])
+@app.get('/v1/c/gpt/issue/<issue_id>/getAllinferences')
 def get_all_issue_inferences(issue_id):
     limit = int(request.args.get('limit', default=10))
     offset = int(request.args.get('offset', default=0))
@@ -124,18 +126,19 @@ def get_all_issue_inferences(issue_id):
     return jsonify({"payload": {"issueId": issue_id, "UserInferences": allUserInferences}})
 
 
-@app.route('/v1/c/gpt/clearReporting', methods=['POST'])
+@app.post('/v1/c/gpt/clearReporting')
 def clear_slack_reporting():
     resource.clear_slack_reporting()
     return '', 200
 
 
-@app.route('/v1/c/gpt/clearAllIssueData', methods=['POST'])
+@app.post('/v1/c/gpt/clearAllIssueData')
 def clear_all_issue_data():
     resource.clear_all_issue_data_for_demo()
     return '', 200
 
-@app.route('/v1/c/gpt/triggerTask', methods=['POST'])
+
+@app.post('/v1/c/gpt/triggerTask')
 def trigger_task_manually():
     try:
         task()  # Manually trigger the task
@@ -143,13 +146,15 @@ def trigger_task_manually():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/v1/c/gpt/triggerReporting', methods=['POST'])
+
+@app.post('/v1/c/gpt/triggerReporting')
 def trigger_reporting_manually():
     try:
         reporting_task()  # Manually trigger the task
         return jsonify({"message": "Reporting Task triggered successfully."}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # Load config and Fetch the secrets from the server
 def fetch_secrets_and_load_config():
@@ -168,4 +173,4 @@ if __name__ == '__main__':
         issue_scheduler.start()
         slack_reporting_scheduler.start()
         # Start the application only if the config and secrets are fetched successfully
-        app.run(host='0.0.0.0', port=80)
+        uvicorn.run(app, host="0.0.0.0", port=80)
