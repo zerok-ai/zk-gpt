@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 migrate/migrate
+FROM migrate/migrate
 COPY ./app /zk
 COPY ./db /zk
 WORKDIR /zk
