@@ -40,12 +40,29 @@ class LangChainInference:
             user_query_sequential_list_chains = self.langchianMultiChainFact.getSequentialChains(prompts, output_keys)
 
             overall_chain = SequentialChain(chains=user_query_sequential_list_chains, verbose=True,
-                                            input_variables=["query", "trace_data", "exception_data", "request_response_payload"],
+                                            input_variables=["query", "trace_data", "exception_data",
+                                                             "request_response_payload"],
                                             output_variables=["user_query_response"])
 
             user_query_final_inference = overall_chain(custom_data)
 
             return user_query_final_inference
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return ""
+
+    def get_promql_queries_langchain(self, custom_data):
+        try:
+            prompts, output_keys = self.promptFactInstance.generate_prompts_for_promql_queries_sequential_chain()
+
+            promql_queries_sequential_list_chains = self.langchianMultiChainFact.getSequentialChains(prompts,
+                                                                                                     output_keys)
+
+            overall_chain = SequentialChain(chains=promql_queries_sequential_list_chains, verbose=True,
+                                            input_variables=["issue_title", "issue_inference", "data"],
+                                            output_variables=["promql_queries"])
+            promql_queries = overall_chain(custom_data)
+            return promql_queries
         except Exception as e:
             print(f"An error occurred: {e}")
             return ""

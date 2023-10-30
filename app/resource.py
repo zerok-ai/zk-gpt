@@ -9,6 +9,7 @@ import dataDao
 import event_type_handler
 import inference_engine
 import response_formatter
+import prometheus_engine
 
 GPTServiceProvider = gpt.GPTServiceProvider()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
@@ -238,3 +239,46 @@ def clear_slack_reporting():
 
 def clear_all_issue_data_for_demo():
     postgresClient.clear_all_issue_data_for_demo()
+
+
+def get_prometheus_report(issue_id, incident_id):
+    # fetch relevant data using axon api
+    pods_info = client.get_pods_info(incident_id)
+
+    #  fetch issue title and inference from db
+    inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, incident_id)
+
+    if inference is None:
+        inference = inference_engine.generate_and_store_inference(issue_id,
+                                                                  incident_id)
+
+    if issue_title is None:
+        issue_summary = client.getIssueSummary(issue_id)
+        issue_title = str(issue_summary["issue_title"])
+
+    # create input variable for langchain
+    custom_data = {"issue_title": str(issue_title), "issue_inference": str(inference),
+                   "data": str(pods_info)}
+    # "issue_prompt": "You are an on-call engineer help in constructing promQL queries for relevant metrics that you as an on-call engineer would look at to root-cause the issue"
+
+    print("custom_data" + str(custom_data))
+    # generate prometheus queries
+
+    prometheus_queries = prometheus_engine.generate_prometheus_queries(custom_data)
+
+    print("prometheus_queries: \n" + str(prometheus_queries))
+
+    # TODO : log level
+    # validate the prometheus queries
+
+    # fetch prometheus data using axon custom data
+
+    # ingest those to GPT and get inference
+
+    # generate reposting using each response
+
+    # store in DB
+
+    # slack reporting should use those to publish to slack
+
+    return prometheus_queries

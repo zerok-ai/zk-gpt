@@ -124,6 +124,15 @@ def get_all_issue_inferences(issue_id):
     return jsonify({"payload": {"issueId": issue_id, "UserInferences": allUserInferences}})
 
 
+@app.route('/v1/c/gpt/generatePrometheusReport', methods=['POST'])
+def get_issue_prometheus_report():
+    data = request.get_json()
+    print(str(data))
+    issue_id = data['issueId']
+    incident_id = data['incidentId']
+    issue_prometheus_report = resource.get_prometheus_report(issue_id, incident_id)
+    return jsonify({"payload": {"issueId": issue_id,"incidentId": incident_id, "PrometheusReport": issue_prometheus_report}})
+
 @app.route('/v1/c/gpt/clearReporting', methods=['POST'])
 def clear_slack_reporting():
     resource.clear_slack_reporting()

@@ -114,3 +114,17 @@ def getSpanRawdata(issue_id, incident_id, span_id):
         return spanRawdata
     except requests.exceptions.RequestException as e:
         print(f"Error occurred during API call: {e}")
+
+
+def get_pods_info(incident_id):
+    url = f"http://{axon_host}/v1/c/axon/prom/pods-info/trace/{incident_id}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for HTTP errors (4xx and 5xx status codes)
+        data = response.json()
+        pods_info = data['payload']['pods_info']
+        print(pods_info)
+        return pods_info
+    except requests.exceptions.RequestException as e:
+        print(f"Error occurred during API call to fetch pods info from axon: {e}")
+    return None
