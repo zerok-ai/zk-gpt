@@ -247,7 +247,7 @@ def fetch_issue_incident_context(issue_id, incident_id):
             return None
     except psycopg2.Error as e:
         print(f"Error occurred While fetching context for issue Id in postgres : {e}")
-        raise Exception("Error occurred While fetching context in postgres : {e}")
+        raise Exception(f"Error occurred While fetching context in postgres : {e}")
     finally:
         # Close the cursor and the database connection
         if cur:
