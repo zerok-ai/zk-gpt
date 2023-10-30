@@ -6,8 +6,11 @@ from issue_inference_generation_scheduler import issue_scheduler, task
 from slack_reporting_scheduler import slack_reporting_scheduler, reporting_task
 from fastapi import FastAPI
 import uvicorn
+from utils import zk_logger
 
 app = FastAPI()
+log_tag = "zk_gpt_main"
+logger = zk_logger.logger
 
 
 @app.get('/v1/c/gpt/scenario/<scenario_id>')
@@ -154,6 +157,32 @@ def trigger_reporting_manually():
         return jsonify({"message": "Reporting Task triggered successfully."}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.post(
+    "/endpoints",
+    response_model=DefaultResponseModel,  # default response pydantic model
+    status_code=status.HTTP_201_CREATED,  # default status code
+    description="Description of the well documented endpoint",
+    tags=["Endpoint Category"],
+    summary="Summary of the Endpoint",
+    responses={
+        status.HTTP_200_OK: {
+            "model": OkResponse,  # custom pydantic model for 200 response
+            "description": "Ok Response",
+        },
+        status.HTTP_201_CREATED: {
+            "model": CreatedResponse,  # custom pydantic model for 201 response
+            "description": "Creates something from user request ",
+        },
+        status.HTTP_202_ACCEPTED: {
+            "model": AcceptedResponse,  # custom pydantic model for 202 response
+            "description": "Accepts request and handles it later",
+        },
+    },
+)
+def custom_fast_api_function():
+    pass
 
 
 # Load config and Fetch the secrets from the server

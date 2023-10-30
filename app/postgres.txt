@@ -45,3 +45,4 @@ CREATE TABLE IF NOT EXISTS public.slack_inference_report (
     CONSTRAINT unique_slack_incident_context UNIQUE (issue_id, incident_id)
 );
 
+

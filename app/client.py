@@ -2,13 +2,16 @@ import json
 
 import redis
 import requests
-
+from utils import zk_logger
 import config
 
 axon_host = config.configuration.get("axon_host", "localhost:8080")
 redis_host = config.configuration.get("redis_host", "localhost")
 redis_db = config.configuration.get("redis_db", 6)
 redis_pass = config.configuration.get("redis_password", "")
+
+log_tag = "zk_gpt_main"
+logger = zk_logger.logger
 
 
 def getIssueSummary(issue_id):
@@ -21,7 +24,7 @@ def getIssueSummary(issue_id):
         issueSummary = data['payload']['issue']
         return issueSummary
     except requests.exceptions.RequestException as e:
-        print(f"Error occurred during API call: {e}")
+        logger.error(log_tag, f"Error occurred during API call: {e}")
 
 
 def getScenario(scenario_id):
@@ -41,9 +44,9 @@ def getScenario(scenario_id):
 
         return scenario
     except redis.exceptions.ConnectionError as e:
-        print(f"Error connecting to Redis: {e}")
+        logger.error(log_tag, f"Error connecting to Redis: {e}")
     except Exception as e:
-        print(f"Error reading JSON from Redis: {e}")
+        logger.error(log_tag, f"Error reading JSON from Redis: {e}")
         return None
 
 
@@ -58,7 +61,7 @@ def getScenarioStats(scenario_id):
         scenarioDetail = data['payload']['scenarios']
         return scenarioDetail
     except requests.exceptions.RequestException as e:
-        print(f"Error occurred during API call: {e}")
+        logger.error(log_tag, f"Error occurred during API call: {e}")
 
 
 def getSpansMap(issue_id, incident_id):
@@ -72,7 +75,7 @@ def getSpansMap(issue_id, incident_id):
         spansMap = data['payload']['spans']
         return spansMap
     except requests.exceptions.RequestException as e:
-        print(f"Error occurred during API call: {e}")
+        logger.error(log_tag, f"Error occurred during API call: {e}")
 
 
 def getIssueIncidents(issue_id):
@@ -86,7 +89,7 @@ def getIssueIncidents(issue_id):
         incidents = data['payload']['trace_id_list']
         return incidents
     except requests.exceptions.RequestException as e:
-        print(f"Error while fetching incident Ids for a given issue : {e}")
+        logger.error(log_tag, f"Error while fetching incident Ids for a given issue : {e}")
 
 
 def getLatestIssuesData():
@@ -100,7 +103,7 @@ def getLatestIssuesData():
         issues_data = data['payload']['issues']
         return issues_data
     except requests.exceptions.RequestException as e:
-        print(f"Error while fetching latest issue for a given time : {e}")
+        logger.error(log_tag, f"Error while fetching latest issue for a given time : {e}")
 
 
 def getSpanRawdata(issue_id, incident_id, span_id):
@@ -113,4 +116,4 @@ def getSpanRawdata(issue_id, incident_id, span_id):
         spanRawdata = data['payload']['span_raw_data_details'][span_id]
         return spanRawdata
     except requests.exceptions.RequestException as e:
-        print(f"Error occurred during API call: {e}")
+        logger.error(log_tag, f"Error occurred during API call: {e}")
