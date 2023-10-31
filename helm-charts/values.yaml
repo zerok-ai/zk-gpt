@@ -11,8 +11,11 @@ zkGpt:
   type: ClusterIP
   resources:
     limits:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 256m
+      memory: 256Mi
+    requests:
+      cpu: 256m
+      memory: 256Mi
 
 axon:
   host: "zk-axon.zk-client.svc.cluster.local"
