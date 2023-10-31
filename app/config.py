@@ -103,4 +103,4 @@ class Config:
             raise ValueError(f"Error while fetching cluster id: {e}")
 
 
-configuration = Config("config/config_local.yaml")
+configuration = Config("config/config.yaml")
