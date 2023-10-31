@@ -2,7 +2,7 @@ import yaml
 import os
 import requests
 import time
-from app.utils import app_constants
+from utils import app_constants
 
 
 class Config:

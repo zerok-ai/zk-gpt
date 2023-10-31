@@ -1,10 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app import config
-from app.routes import internal_demo_route, inference_route, events_route, deprecated_route
-from app.schedulers.issue_inference_generation_scheduler import issue_scheduler
-from app.schedulers.slack_reporting_scheduler import slack_reporting_scheduler
+import config
+from routes import internal_demo_route, inference_route, events_route, deprecated_route
+from schedulers.issue_inference_generation_scheduler import issue_scheduler
+from schedulers.slack_reporting_scheduler import slack_reporting_scheduler
 
 app = FastAPI()
 
