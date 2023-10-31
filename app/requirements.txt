@@ -11,3 +11,4 @@ apscheduler==3.10.4
 sqlalchemy==2.0.21
 fastapi==2.0.21
 unicorn==0.23.2
+httpx==0.25.0

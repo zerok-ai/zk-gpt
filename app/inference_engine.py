@@ -4,14 +4,16 @@ import pineconeInteraction
 import slack_integration
 from clientServices import postgresClient
 from datetime import datetime
+from app.clients import axon_client
 
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
 pineconeInteractionProvider = pineconeInteraction.PineconeInteraction()
+axon_svc_client = axon_client.AxonServiceClient()
 
 
 def generate_and_store_inference(issue_id, incident_id):
     # getting langchain inferences
-    issue_summary = client.getIssueSummary(issue_id)
+    issue_summary = axon_svc_client.get_issue_summary(issue_id)
     custom_data, langchain_inference = get_langchain_inference(issue_id, incident_id, issue_summary)
     inference = langchain_inference['final_summary']
 
@@ -40,7 +42,7 @@ def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data
     print(f"last seen: {str(issue_last_seen)}")
 
     # getting langchain inferences
-    issue_summary = client.getIssueSummary(issue_id)
+    issue_summary = axon_svc_client.get_issue_summary(issue_id)
 
     custom_data, langchain_inference = get_langchain_inference(issue_id, incident_id, issue_summary)
 
@@ -67,11 +69,11 @@ def generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data
 def get_langchain_inference(issue_id, incident_id, issue_summary):
     # fetch all the data required for langchain inference
     print("starting langchain inference: ")
-    spans_map = client.getSpansMap(issue_id, incident_id)
+    spans_map = axon_svc_client.get_spans_map(issue_id, incident_id)
     exception_map = []
     req_res_payload_map = []
     for span_id in spans_map:
-        span_raw_data = client.getSpanRawdata(issue_id, incident_id, span_id)
+        span_raw_data = axon_svc_client.get_span_raw_data(issue_id, incident_id, span_id)
         spans_map[span_id].update(span_raw_data)
 
     filtered_spans_map = dict()
@@ -158,7 +160,7 @@ def vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchi
     #                                                                                         'issue_summary'], "default",
     #                                                                                     "default")
     data_list = [value for value in pinecone_issue_data.values()]
-    pineconeInteractionProvider.vectorize_data_and_pushto_pinecone_db(issue_id, incident_id, data_list)
+    pineconeInteractionProvider.vectorize_data_and_push_to_pinecone_db(issue_id, incident_id, data_list)
 
 
 def get_time_stamp_from_datatime(date_time_str):

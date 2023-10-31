@@ -2,7 +2,10 @@ from concurrent.futures import ThreadPoolExecutor
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from clientServices import postgresClient, wsp_client
+from app.clients import wsp_client
+from clientServices import postgresClient
+
+wsp_svc_client = wsp_client.WSPServiceClient()
 
 
 def publish_issue_inference_slack_report(issue_incident_dict):
@@ -20,7 +23,7 @@ def publish_issue_inference_slack_report(issue_incident_dict):
         if issue_last_seen < clear_reporting_timestamp:
             return
 
-        wsp_client.publish_inference_to_slack(issue_id, incident_id,inference, issue_title)
+        wsp_svc_client.publish_inference_to_slack(issue_id, incident_id,inference, issue_title)
         # update the status of the slack reporting
         postgresClient.update_slack_reporting_status(issue_id, incident_id,True)
     except Exception as e:

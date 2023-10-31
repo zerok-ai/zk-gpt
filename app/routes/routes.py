@@ -1,12 +1,12 @@
-from flask import Flask, jsonify, request
-import resource
-import config
 import uuid
-from issue_inference_generation_scheduler import issue_scheduler, task
-from slack_reporting_scheduler import slack_reporting_scheduler, reporting_task
-from fastapi import FastAPI
+
+
 import uvicorn
-from utils import zk_logger
+from fastapi import FastAPI
+
+import config
+from app import resource
+from app.utils import zk_logger
 
 app = FastAPI()
 log_tag = "zk_gpt_main"
@@ -16,20 +16,20 @@ logger = zk_logger.logger
 @app.get('/v1/c/gpt/scenario/<scenario_id>')
 def get_scenario(scenario_id):
     summary = resource.get_scenario_summary(scenario_id)
-    return jsonify({"payload": {"summary": summary}})
+    return {"payload": {"summary": summary}}
 
 
 @app.get('/v1/c/gpt/issue/<issue_id>')
 def get_issue(issue_id):
     summary = resource.get_issue_summary(issue_id)
-    return jsonify({"payload": {"summary": summary}})
+    return {"payload": {"summary": summary}}
 
 
 @app.get('/v1/c/gpt/issue/<issue_id>/incident/<incident_id>')
 def get_incident(issue_id, incident_id):
     rca_using_langchian_inference = bool(request.args.get('useLangchain', default=False))
     rca = resource.getIncidentRCA(issue_id, incident_id, rca_using_langchian_inference)
-    return jsonify({"payload": {"rca": rca}})
+    return {"payload": {"rca": rca}}
 
 
 @app.post('/v1/c/gpt/incident/inference')
@@ -40,7 +40,7 @@ def get_issue_incident_inference():
     if data.get('incidentId') is not None:
         incident_id = data['incidentId']
     issue_id_res, incident_id_res, inference = resource.get_incident_likely_cause(issue_id, incident_id)
-    return jsonify({"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}})
+    return {"payload": {"issueId": issue_id_res, "incidentId": incident_id_res, "inference": inference}}
 
 
 @app.get('/v1/c/gpt/incident/<issue_id>/list/events')

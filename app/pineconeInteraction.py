@@ -1,15 +1,16 @@
-import tiktoken
-from langchain.embeddings.openai import OpenAIEmbeddings
-import pinecone
-from uuid import uuid4
-from langchain.vectorstores import Pinecone
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-import config
-import client
 import concurrent.futures
-import json
+from uuid import uuid4
+
+import pinecone
+import tiktoken
+from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import Pinecone
+
+import config
+from app.clients import axon_client
 
 openai_key = config.configuration.get("openai_key", "")
 pinecone_index_key = config.configuration.get("pinecone_index", "zk-index-prod")
@@ -23,7 +24,7 @@ class PineconeInteraction:
     def __init__(self):
         self.issueVectorization = Vectorization()
 
-    def vectorize_data_and_pushto_pinecone_db(self, issue_id, incident_id, data_list):
+    def vectorize_data_and_push_to_pinecone_db(self, issue_id, incident_id, data_list):
         # initialize and push to vector db
         # Use a ThreadPoolExecutor with 5 worker threads (you can adjust the number as needed)
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -36,7 +37,7 @@ class PineconeInteraction:
         # print(f"All vectorizing complete for issue Id: {issue_id}, incident_id: {incident_id}\n")
         # for data in data_list:
         #     self.issueVectorization.vectorize_data_and_push(issue_id, incident_id, data)
-        # print("vectorzing complete for issue Id : {}, incident_id: {} \n".format(issue_id, incident_id))
+        # print("vectorizing complete for issue Id : {}, incident_id: {} \n".format(issue_id, incident_id))
 
     @staticmethod
     def create_pinecone_data(issue_id, incident_id, data_type, category, data, client_id, cluster):
@@ -55,7 +56,8 @@ class PineconeInteraction:
         self.issueVectorization.fetch_data_and_vectorize_issue(issue)
 
     def get_gpt_inferences_for_query_custom_data(self, issue, query, temperature, top_k):
-        response = self.issueVectorization.getGptInferenceUsingVectorDBCustomParams(query, issue, temperature, top_k)
+        response = self.issueVectorization.get_gpt_inference_using_vector_db_custom_params(query, issue, temperature,
+                                                                                           top_k)
         return response
 
     def get_similar_docs_for_given_query(self, issue_id, query):
@@ -66,6 +68,7 @@ class PineconeInteraction:
         issue_id, incident_id, data = args
         self.issueVectorization.vectorize_data_and_push(issue_id, incident_id, data)
 
+
 class Vectorization:
     def __init__(self):
         self.embed = OpenAIEmbeddings(
@@ -73,6 +76,7 @@ class Vectorization:
             openai_api_key=config.configuration.get("openai_key", "")
         )
         self.index_name = pinecone_index_key
+        self.axon_svc_client = axon_client.AxonServiceClient()
         print("Initiating pinecone : \n")
         pinecone.init(
             api_key=pinecone_api_key,
@@ -136,7 +140,7 @@ class Vectorization:
         batch_limit = 100
 
         texts = []
-        metadatas = []
+        metadata = []
         metadata = {
             'issue_id': str(issue_id),
             'source': str(issue_id),
@@ -156,26 +160,26 @@ class Vectorization:
         } for j, text in enumerate(record_texts)]
         # append these to current batches
         texts.extend(record_texts)
-        metadatas.extend(record_metadatas)
+        metadata.extend(record_metadatas)
         # if we have reached the batch_limit we can add texts
         if len(texts) >= batch_limit:
             ids = [str(uuid4()) for _ in range(len(texts))]
             embeds = self.embed.embed_documents(texts)
-            self.index.upsert(vectors=zip(ids, embeds, metadatas))
+            self.index.upsert(vectors=zip(ids, embeds, metadata))
             texts = []
-            metadatas = []
+            metadata = []
 
         if len(texts) > 0:
             ids = [str(uuid4()) for _ in range(len(texts))]
             embeds = self.embed.embed_documents(texts)
-            self.index.upsert(vectors=zip(ids, embeds, metadatas))
+            self.index.upsert(vectors=zip(ids, embeds, metadata))
 
-    def getGptInferenceUsingVectorDB(self, query, issue_id, incident_id):
+    def get_gpt_inference_using_vector_db(self, query, issue_id, incident_id):
         print(
             "fetching the top vectors form the vector DB for issue: {}, incident_id: {}, specific to query: {}".format(
-                 issue_id, incident_id, query))
+                issue_id, incident_id, query))
         # write logic to fetch from vector DB.
-        vector_store = self.getVectorStore(issue_id, incident_id, query)
+        vector_store = self.get_vector_store(issue_id, incident_id, query)
         retrieval_qa = self.initialize_llm_model_and_vector_retrieval(vector_store)
         ans = retrieval_qa.run(query)
         response = "Query : {}\n".format(query)
@@ -187,12 +191,12 @@ class Vectorization:
         print("vectoring issue with issue Id : {} \n".format(issue))
         # write vectorization logic
         # get issue summary
-        issueData = dict()
+        issue_data = dict()
 
-        issueSummary = client.getIssueSummary(issue)
+        issue_summary = self.axon_svc_client.get_issue_summary(issue)
 
         # get all incidents for the given issue
-        issueIncidents = client.getIssueIncidents(issue)
+        issue_incidents = self.axon_svc_client.get_issue_incidents(issue)
 
         # vector pushing logic starts here
 
@@ -217,36 +221,36 @@ class Vectorization:
         batch_limit = 100
 
         # for each incident create data and push to vector DB : 
-        for incident in issueIncidents:
-            spansMap = client.getSpansMap(issue, incident)
-            exceptionMap = []
-            reqPayloadMap = []
-            resPayloadMap = []
-            for span_id in spansMap:
-                spanRawData = client.getSpanRawdata(issue, incident, span_id)
-                spansMap[span_id].update(spanRawData)
+        for incident in issue_incidents:
+            spans_map = self.axon_svc_client.get_spans_map(issue, incident)
+            exception_map = []
+            req_payload_map = []
+            res_payload_map = []
+            for span_id in spans_map:
+                span_raw_data = self.axon_svc_client.get_span_raw_data(issue, incident, span_id)
+                spans_map[span_id].update(span_raw_data)
 
-            filteredSpansMap = dict()
-            for spanId in spansMap:
+            filtered_spans_map = dict()
+            for spanId in spans_map:
                 # remove error key from spanMap
-                del spansMap[spanId]["error"]
+                del spans_map[spanId]["error"]
 
-                span = spansMap[spanId]
+                span = spans_map[spanId]
                 span["span_id"] = spanId
                 # remove exception span from spanMap
                 if str(span["protocol"]).upper() == "EXCEPTION":
                     parentSpanId = span["parent_span_id"]
-                    if parentSpanId in spansMap:
-                        spansMap[parentSpanId]["exception"] = span["req_body"]
-                        exceptionMap.append(span["req_body"])
-                        filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
+                    if parentSpanId in spans_map:
+                        spans_map[parentSpanId]["exception"] = span["req_body"]
+                        exception_map.append(span["req_body"])
+                        filtered_spans_map[parentSpanId] = spans_map[parentSpanId]
                 else:
-                    filteredSpansMap[spanId] = span
+                    filtered_spans_map[spanId] = span
 
-            for spanId in filteredSpansMap:
-                span = spansMap[spanId]
-                reqPayloadMap.append(span['req_body'])
-                resPayloadMap.append(span['resp_body'])
+            for spanId in filtered_spans_map:
+                span = spans_map[spanId]
+                req_payload_map.append(span['req_body'])
+                res_payload_map.append(span['resp_body'])
 
             metadata = {
                 'issue-id': str(issue),
@@ -258,53 +262,53 @@ class Vectorization:
             }
 
             # issue data creation
-            issueData['spans'] = filteredSpansMap
-            issueData['stackTrace'] = exceptionMap
-            issueData['request_payload'] = reqPayloadMap
-            issueData['response_payload'] = resPayloadMap
-            issueData['issueSummary'] = issueSummary
-            issueData['metadata'] = metadata
+            issue_data['spans'] = filtered_spans_map
+            issue_data['stackTrace'] = exception_map
+            issue_data['request_payload'] = req_payload_map
+            issue_data['response_payload'] = res_payload_map
+            issue_data['issueSummary'] = issue_summary
+            issue_data['metadata'] = metadata
 
             texts = []
-            metadatas = []
+            metadata = []
 
             # now we create chunks from the record text
-            record_texts = text_splitter.split_text(str(issueData))
+            record_texts = text_splitter.split_text(str(issue_data))
             # create individual metadata dicts for each chunk
             record_metadatas = [{
                 "chunk": j, "text": text, **metadata
             } for j, text in enumerate(record_texts)]
             # append these to current batches
             texts.extend(record_texts)
-            metadatas.extend(record_metadatas)
+            metadata.extend(record_metadatas)
             # if we have reached the batch_limit we can add texts
             if len(texts) >= batch_limit:
                 ids = [str(uuid4()) for _ in range(len(texts))]
                 embeds = self.embed.embed_documents(texts)
-                self.index.upsert(vectors=zip(ids, embeds, metadatas))
+                self.index.upsert(vectors=zip(ids, embeds, metadata))
                 texts = []
-                metadatas = []
+                metadata = []
 
             if len(texts) > 0:
                 ids = [str(uuid4()) for _ in range(len(texts))]
                 embeds = self.embed.embed_documents(texts)
-                self.index.upsert(vectors=zip(ids, embeds, metadatas))
+                self.index.upsert(vectors=zip(ids, embeds, metadata))
 
         print("vectorzing complete for issue Id : {} \n".format(issue))
 
-    def getGptInferenceUsingVectorDBCustomParams(self, query, issue, temperature, k):
+    def get_gpt_inference_using_vector_db_custom_params(self, query, issue, temperature, k):
 
         print("fetching the top {} vectors form the vector DB specific to  query".format(k))
         # write logic to fetch from vector DB.
-        vectorStore = self.getVectorStore(issue, None, query)
-        retrievalQA = self.initialize_llm_model_and_vector_retrieval(vectorStore)
-        ans = retrievalQA.run(query)
+        vector_store = self.get_vector_store(issue, None, query)
+        retrieval_qa = self.initialize_llm_model_and_vector_retrieval(vector_store)
+        ans = retrieval_qa.run(query)
         response = "Query : {}\n".format(query)
         response += "Answer : {}\n".format(str(ans))
         print(response)
         return str(ans)
 
-    def getVectorStore(self, issue_id, incident_id, query):
+    def get_vector_store(self, issue_id, incident_id, query):
         text_field = "text"
         # switch back to normal index for langchain
         vectorstore = Pinecone(
@@ -342,9 +346,9 @@ class Vectorization:
         vectorstore = Pinecone(
             pinecone.Index(self.index_name), self.embed.embed_query, text_field
         )
-        
+
         metadata_filter = {"source": {'$eq': str(issue_id)}}
-       
+
         docs = vectorstore.similarity_search(
             query,  # our search query
             k=user_qna_topk,  # return k most relevant docs
@@ -353,6 +357,5 @@ class Vectorization:
             }
         )
         # print(str(vectorstore))
-
 
         return docs

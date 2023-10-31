@@ -18,64 +18,36 @@ OUTPUT : returns the requested data across different datasets
 8) get pod status 
 9) get logs <backlog>
 """
-import client
 import config
+
+from app.clients import axon_client
+
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
+axon_svc_client = axon_client.AxonServiceClient()
 
 
 def get_latest_incident_id(issue_id):
     # fetch all incidents for the given issue
-    issue_incidents = client.getIssueIncidents(issue_id)
+    issue_incidents = axon_svc_client.get_issue_incidents(issue_id)
     return issue_incidents[0]
 
 
-def getRequestResponsePayload(issue_id,incident_id):
+def get_request_response_payload(issue_id, incident_id):
     return "request response payload"
 
-def getCpuUsageData():
+
+def get_cpu_usage_data():
     return ""
 
 
-def getMemoryUsage():
+def get_memory_usage():
     return ""
 
-def getPodInfo():
+
+def get_pod_info():
     return ""
 
-def getDeploymentInfo():
+
+def get_deployment_info():
     return ""
-
-def getTraceSpanData(issue_id,incident_id):
-    spansMap = client.getSpansMap(issue_id, incident_id)
-    for span_id in spansMap:
-        spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
-        if len(spanRawData["req_body"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["req_body"] = spanRawData["req_body"][:MAX_PAYLOAD_SIZE]
-        if len(spanRawData["resp_body"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["resp_body"] = spanRawData["resp_body"][:MAX_PAYLOAD_SIZE]
-        spansMap[span_id].update(spanRawData)
-
-    filteredSpansMap = dict()
-    for spanId in spansMap:
-        span = spansMap[spanId]
-        # remove exception span from spanMap
-        if str(span["protocol"]).upper() == "EXCEPTION":
-            parentSpanId = span["parent_span_id"]
-            if parentSpanId in spansMap:
-                spansMap[parentSpanId]["exception"] = span["request_payload"]
-                filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
-        else:
-            filteredSpansMap[spanId] = span
-
-    return filteredSpansMap
-
-def getIssueData():
-    print("temp")
-
-
-def getPrometheusData(issue_id,incident_id): 
-    print("temp")
-
-
-
 

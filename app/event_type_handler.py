@@ -1,18 +1,20 @@
 from abc import ABC, abstractmethod
 
-from enums.event_type import EventType
 from flask import jsonify
-import client
-import pineconeInteraction
+
+import context_cache
 import gptLangchianInference
 import inference_engine
-from clientServices import postgresClient
-import context_cache
+import pineconeInteraction
 import response_formatter
+from app.clients import axon_client
+from clientServices import postgresClient
+from enums.event_type import EventType
 
 pineconeInteractionProvider = pineconeInteraction.PineconeInteraction()
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
 in_memory_context = context_cache.ContextCache(1000)
+axon_svc_client = axon_client.AxonServiceClient()
 
 
 class EventHandlingStrategy(ABC):
@@ -51,11 +53,11 @@ class QNAEventStrategy(EventHandlingStrategy):
             event_request = event['request']
             query = event_request['query']
 
-            spans_map = client.getSpansMap(issue_id, incident_id)
+            spans_map = axon_svc_client.get_spans_map(issue_id, incident_id)
             exception_map = []
             req_res_payload_map = []
             for span_id in spans_map:
-                span_raw_data = client.getSpanRawdata(issue_id, incident_id, span_id)
+                span_raw_data = axon_svc_client.get_span_raw_data(issue_id, incident_id, span_id)
                 spans_map[span_id].update(span_raw_data)
 
             filtered_spans_map = dict()

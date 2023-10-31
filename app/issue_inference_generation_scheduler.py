@@ -4,6 +4,9 @@ import client
 import inference_engine
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from app.clients import axon_client
+
+axon_svc_client = axon_client.AxonServiceClient()
 
 
 def generate_inference(issue_incident_dict):
@@ -37,7 +40,7 @@ def task():
     print("Running Issue Inference Scheduler")
     # fetch new issues from that timestamp
     # get last issue inferenced time stamp
-    issues_data_list = client.getLatestIssuesData()
+    issues_data_list = axon_svc_client.get_latest_issues_data()
 
     if issues_data_list is None or len(issues_data_list) == 0:
         print("issue scheduler : No new issues found to infer")

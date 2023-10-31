@@ -9,76 +9,79 @@ import dataDao
 import event_type_handler
 import inference_engine
 import response_formatter
+from app.clients import axon_client, redis_client
 
 GPTServiceProvider = gpt.GPTServiceProvider()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
 langChainInferenceProvider = gptLangchianInference.LangChainInference()
 pineconeInteractionProvider = pineconeInteraction.PineconeInteraction()
+axon_svc_client = axon_client.AxonServiceClient()
+redis_svc_client = redis_client.RedisServiceClient()
 
 
-def getScenarioSummary(scenario_id):
-    scenario_def = client.getScenario(scenario_id)
-    scenario_stats = client.getScenarioStats(scenario_id)
+def get_scenario_summary(scenario_id):
+    scenario_def = redis_svc_client.get_scenario(scenario_id)
+    scenario_stats = axon_svc_client.get_scenario_stats(scenario_id)
 
-    gptInstance = GPTServiceProvider.registerGPTHandler("scenario-" + scenario_id)
+    gpt_instance = GPTServiceProvider.registerGPTHandler("scenario-" + scenario_id)
 
-    gptInstance.setContext("A scenario is defined as a set of rules which are executed on network traces.")
-    gptInstance.setContext("The following is the scenario definition containing the rules:")
-    gptInstance.setContext(scenario_def)
-    gptInstance.setContext("The following is the scenario statistics for the provided scenario:")
-    gptInstance.setContext(scenario_stats)
+    gpt_instance.setContext("A scenario is defined as a set of rules which are executed on network traces.")
+    gpt_instance.setContext("The following is the scenario definition containing the rules:")
+    gpt_instance.setContext(scenario_def)
+    gpt_instance.setContext("The following is the scenario statistics for the provided scenario:")
+    gpt_instance.setContext(scenario_stats)
 
     question = "Extract and Summarise the rules and the statistics of the above scenario in 2 lines."
-    answer = gptInstance.findAnswers(question)
+    answer = gpt_instance.findAnswers(question)
 
     return answer
 
 
-def getIssueSummary(issue_id):
-    issueSummary = client.getIssueSummary(issue_id)
-    gptInstance = GPTServiceProvider.registerGPTHandler(issue_id)
+def get_issue_summary(issue_id):
+    issue_summary = axon_svc_client.get_issue_summary(issue_id)
+    gpt_instance = GPTServiceProvider.registerGPTHandler(issue_id)
 
-    gptInstance.setContext(
+    gpt_instance.setContext(
         "An issue is defined as set of attributes separated by `¦` character. this convention is not to be part of summary")
-    gptInstance.setContext("the issue in this case is " + str(issueSummary["issue_title"]))
-    gptInstance.setContext("attributes include kubernetes namespace/service name and the issue type")
-    gptInstance.setContext(
-        "We have collected " + str(issueSummary["total_count"]) + " data samples for inference of this issue.")
-    gptInstance.setContext("Data was collected from zeroK operator and kubernetes metrics server.")
-    gptInstance.setContext(
+    gpt_instance.setContext("the issue in this case is " + str(issue_summary["issue_title"]))
+    gpt_instance.setContext("attributes include kubernetes namespace/service name and the issue type")
+    gpt_instance.setContext(
+        "We have collected " + str(issue_summary["total_count"]) + " data samples for inference of this issue.")
+    gpt_instance.setContext("Data was collected from zeroK operator and kubernetes metrics server.")
+    gpt_instance.setContext(
         "To understand why a particular incident happened, click on any distinct incident on the right")
 
     question = "Summarize the issue in 2 lines including the number of data samples collected and the data sources."
-    answer = gptInstance.findAnswers(question)
+    answer = gpt_instance.findAnswers(question)
 
     return answer
 
 
-def getAndSanitizeSpansMap(issue_id, incident_id):
-    spansMap = client.getSpansMap(issue_id, incident_id)
-    for span_id in spansMap:
-        spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
-        if len(spanRawData["req_body"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["req_body"] = spanRawData["req_body"][:MAX_PAYLOAD_SIZE]
-        if len(spanRawData["resp_body"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["resp_body"] = spanRawData["resp_body"][:MAX_PAYLOAD_SIZE]
-        spansMap[span_id].update(spanRawData)
+def get_and_sanitize_spans_map(issue_id, incident_id):
+    spans_map = axon_svc_client.get_spans_map(issue_id, incident_id)
+    for span_id in spans_map:
+        span_raw_data = axon_svc_client.get_span_raw_data(issue_id, incident_id, span_id)
+        if len(span_raw_data["req_body"]) > MAX_PAYLOAD_SIZE:
+            span_raw_data["req_body"] = span_raw_data["req_body"][:MAX_PAYLOAD_SIZE]
+        if len(span_raw_data["resp_body"]) > MAX_PAYLOAD_SIZE:
+            span_raw_data["resp_body"] = span_raw_data["resp_body"][:MAX_PAYLOAD_SIZE]
+        spans_map[span_id].update(span_raw_data)
 
-    filteredSpansMap = dict()
-    for spanId in spansMap:
-        span = spansMap[spanId]
+    filtered_spans_map = dict()
+    for spanId in spans_map:
+        span = spans_map[spanId]
         # remove exception span from spanMap
         if str(span["protocol"]).upper() == "EXCEPTION":
             parentSpanId = span["parent_span_id"]
-            if parentSpanId in spansMap:
-                spansMap[parentSpanId]["exception"] = span["request_payload"]
-                filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
+            if parentSpanId in spans_map:
+                spans_map[parentSpanId]["exception"] = span["request_payload"]
+                filtered_spans_map[parentSpanId] = spans_map[parentSpanId]
         else:
-            filteredSpansMap[spanId] = span
+            filtered_spans_map[spanId] = span
 
-    print(filteredSpansMap)
+    print(filtered_spans_map)
 
-    return filteredSpansMap
+    return filtered_spans_map
 
 
 def getIncidentRCA(issue_id, incident_id, rcaUsingLangchianInference):
@@ -129,7 +132,7 @@ def getIncidentRCA(issue_id, incident_id, rcaUsingLangchianInference):
 
     gptInstance.setContext("Following are the spans:")
 
-    spansMap = getAndSanitizeSpansMap(issue_id, incident_id)
+    spansMap = get_and_sanitize_spans_map(issue_id, incident_id)
     spanList = []
     # provide spans as context
     for spanId in spansMap:
