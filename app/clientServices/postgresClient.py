@@ -625,7 +625,7 @@ def insert_issue_inference_to_slack_reporting_db(issue_id, incident_id, clear_re
         data = {
             "issue_id": issue_id,
             "incident_id": incident_id,
-            "clear_reporting_timestamp" : clear_reporting_timestamp
+            "clear_reporting_timestamp": clear_reporting_timestamp
         }
 
         # SQL query for inserting data

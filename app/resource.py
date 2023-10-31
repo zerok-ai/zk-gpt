@@ -149,12 +149,12 @@ def getIncidentRCA(issue_id, incident_id, rcaUsingLangchianInference):
     return answer
 
 
-def getIncidentQuery(issue_id, incident_id, query):
+def get_incident_query(issue_id, incident_id, query):
     if not GPTServiceProvider.hasHandler(issue_id + "-" + incident_id):
         return "Incident not found."
 
-    gptInstance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
-    answer = gptInstance.findAnswers(query)
+    gpt_instance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
+    answer = gpt_instance.findAnswers(query)
 
     print("Q:" + query)
     print("A:" + answer)
