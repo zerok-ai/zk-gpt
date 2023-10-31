@@ -1,7 +1,7 @@
 from langchain.chains import SequentialChain
 
-import langchian_multi_chain_factory
-import prompt_factory
+from app.internal.langchain_adapter import langchian_multi_chain_factory
+from app.internal.langchain_adapter import prompt_factory
 from app.utils import zk_logger
 
 log_tag = "langchain_adapter"

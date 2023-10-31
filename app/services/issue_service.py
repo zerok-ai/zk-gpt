@@ -3,7 +3,7 @@ from app import gpt
 from app.clients import axon_client, redis_client
 from app.internal.langchain_adapter import langchain_adapter
 from app.internal.pinecone_adapter import pinecone_adapter
-import inference_service
+from app.services import inference_service
 from app.dao import dataDao
 
 GPTServiceProvider = gpt.GPTServiceProvider()

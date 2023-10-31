@@ -1,4 +1,4 @@
-import zk_logger
+from app.utils import zk_logger
 
 log_tag = "response_formatter"
 logger = zk_logger.logger
@@ -19,6 +19,6 @@ def get_formatted_inference_response(issue_id: str, incident_id: str, inference:
             inference_summary_anomaly["summary"] = inference.strip()
         return inference_summary_anomaly
     except Exception as e:
-        logger(log_tag, "exception occurred like parsing the langchain response for issue:{} incident:{}".format(issue_id,
+        logger.error(log_tag, "exception occurred like parsing the langchain response for issue:{} incident:{}".format(issue_id,
                                                                                                        incident_id))
         return inference_summary_anomaly

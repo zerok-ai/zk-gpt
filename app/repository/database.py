@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from app import config
 
 postgres_host = config.configuration.get("postgres_host", "localhost")
