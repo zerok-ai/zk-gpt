@@ -25,6 +25,16 @@ spec:
               do echo "waiting for ${URL}"; sleep 2; done;'
           name: operator-wait
           env:
+            - name: LANGCHAIN_TRACING_V2
+              value: "true"
+            - name: LANGCHAIN_PROJECT
+              value: "zk-gpt"
+            - name: LANGCHAIN_ENDPOINT
+              value: "https://api.smith.langchain.com"
+            - name: LANGCHAIN_API_KEY
+              value: "ls__2ba78d8aeab146a3939dbe190c1e7bfe"
+            - name: OPENAI_API_KEY
+              value: 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"
             - name: SERVICE_NAME
               value: zk-operator.zk-client.svc.cluster.local
             - name: SERVICE_PORT
