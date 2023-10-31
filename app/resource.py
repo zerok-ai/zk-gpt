@@ -194,7 +194,8 @@ def get_incident_likely_cause(issue_id, incident_id):
     inference_db, incident_id_db = postgresClient.check_if_inference_already_present_for_issue(issue_id)
 
     if inference_db is not None and incident_id_db is not None:
-        return issue_id, incident_id_db, response_formatter.get_formatted_inference_response(issue_id, incident_id_db, inference_db)
+        return issue_id, incident_id_db, response_formatter.get_formatted_inference_response(issue_id, incident_id_db,
+                                                                                             inference_db)
 
     if incident_id is None or incident_id == "":
         # fetch latest incident_id for the issue
@@ -229,3 +230,11 @@ def process_incident_event_and_get_event_response(issue_id, incident_id, event_t
         return strategy.handle_event(issue_id, incident_id, event_type, event)
     else:
         raise Exception("Event type : {} is not supported".format(event_type))
+
+
+def clear_slack_reporting():
+    postgresClient.clear_slack_reporting_for_demo()
+
+
+def clear_all_issue_data_for_demo():
+    postgresClient.clear_all_issue_data_for_demo()

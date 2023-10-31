@@ -136,7 +136,7 @@ class InferenceEventStrategy(EventHandlingStrategy):
     def handle_event(self, issue_id, incident_id, event_type, event):
         if event_type == EventType.INFERENCE.value:
             # check if inference already calculated for the issue and incident and send accordingly
-            inference = postgresClient.check_if_inference_already_present(issue_id, incident_id)
+            inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, incident_id)
             # inference = None -> not present
             if inference is None:
                 inference = inference_engine.generate_and_store_inference(issue_id,
@@ -164,7 +164,7 @@ class TraceSwitchEventStrategy(EventHandlingStrategy):
                                                                                                new_incident)
             context_switch_response = "context switched from incident id : {} to incident id : {}".format(old_incident,
                                                                                                           new_incident)
-            inference = postgresClient.check_if_inference_already_present(issue_id, new_incident)
+            inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, new_incident)
             # inference = None -> not present
             if inference is None:
                 inference = inference_engine.generate_and_store_inference(issue_id,

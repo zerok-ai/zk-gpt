@@ -2,7 +2,8 @@ from flask import Flask, jsonify, request
 import resource
 import config
 import uuid
-from issueInferenceGenerationScheduler import issue_scheduler
+from issue_inference_generation_scheduler import issue_scheduler, task
+from slack_reporting_scheduler import slack_reporting_scheduler, reporting_task
 
 app = Flask(__name__)
 
@@ -123,6 +124,33 @@ def get_all_issue_inferences(issue_id):
     return jsonify({"payload": {"issueId": issue_id, "UserInferences": allUserInferences}})
 
 
+@app.route('/v1/c/gpt/clearReporting', methods=['POST'])
+def clear_slack_reporting():
+    resource.clear_slack_reporting()
+    return '', 200
+
+
+@app.route('/v1/c/gpt/clearAllIssueData', methods=['POST'])
+def clear_all_issue_data():
+    resource.clear_all_issue_data_for_demo()
+    return '', 200
+
+@app.route('/v1/c/gpt/triggerTask', methods=['POST'])
+def trigger_task_manually():
+    try:
+        task()  # Manually trigger the task
+        return jsonify({"message": "Task triggered successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/v1/c/gpt/triggerReporting', methods=['POST'])
+def trigger_reporting_manually():
+    try:
+        reporting_task()  # Manually trigger the task
+        return jsonify({"message": "Reporting Task triggered successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Load config and Fetch the secrets from the server
 def fetch_secrets_and_load_config():
     try:
@@ -138,5 +166,6 @@ if __name__ == '__main__':
     if fetch_secrets_and_load_config():
         # start issue scheduler
         issue_scheduler.start()
+        slack_reporting_scheduler.start()
         # Start the application only if the config and secrets are fetched successfully
         app.run(host='0.0.0.0', port=80)
