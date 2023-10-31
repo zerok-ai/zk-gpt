@@ -11,8 +11,8 @@ zkGpt:
   type: ClusterIP
   resources:
     limits:
-      cpu: 256m
-      memory: 256Mi
+      cpu: 500m
+      memory: 1Gi
     requests:
       cpu: 256m
       memory: 256Mi
