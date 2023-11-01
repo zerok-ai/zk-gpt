@@ -15,7 +15,7 @@ zkGpt:
       memory: 1Gi
 
 axon:
-  host: "zk-axon.zk-client.svc.cluster.local"
+  host: "http://zk-axon.zk-client.svc.cluster.local"
 
 wsp:
   host: "http://zk-wsp-client.zk-client.svc.cluster.local"
