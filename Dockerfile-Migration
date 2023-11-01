@@ -1,4 +1,5 @@
 FROM migrate/migrate
+RUN mkdir -p /zk/app/migrations
 COPY ./app /zk/app
 COPY ./db /zk/app
 WORKDIR /zk/app
