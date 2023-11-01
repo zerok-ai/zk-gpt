@@ -1,0 +1,5 @@
+FROM migrate/migrate
+COPY ./app /zk/app
+COPY ./db /zk/app
+WORKDIR /zk/app
+COPY db/migrations ./migrations

@@ -54,8 +54,11 @@ openai:
 replicaCount: 1
 image:
   repo: "zk-gpt"
-  tag: latest
+  tag: "latest"
   pullPolicy: IfNotPresent
+  migrationRestartPolicy: Never
+  migrationRepo: "zk-gpt-migration"
+  migrationTag: "latest"
 
 autoscaling:
   enabled: false
