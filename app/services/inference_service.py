@@ -11,7 +11,6 @@ pinecone_interaction_provider = pinecone_adapter.PineconeAdapter()
 
 class InferenceService:
 
-    @staticmethod
     def get_incident_likely_cause(self, issue_id, incident_id):
         if issue_id is None:
             raise Exception("issue_id is None")
