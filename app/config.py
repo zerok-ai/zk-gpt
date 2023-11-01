@@ -103,4 +103,4 @@ class Config:
             raise ValueError(f"Error while fetching cluster id: {e}")
 
 
-configuration = Config("config/config.yaml")
+configuration = Config("./../zk-gpt/config/config.yaml")
