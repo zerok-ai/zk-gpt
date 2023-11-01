@@ -1,5 +1,7 @@
 FROM  python:3.8
 
+RUN mkdir -p /zk/app
+
 COPY ./app /zk/app
 WORKDIR /zk/app
 
