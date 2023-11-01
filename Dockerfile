@@ -1,7 +1,9 @@
 FROM  python:3.8
 
-COPY ./app /zk
-WORKDIR /zk
+COPY ./app /zk/app
+WORKDIR /zk/app
+
+ENV PYTHONPATH=/zk
 
 RUN pip install -r requirements.txt
 
