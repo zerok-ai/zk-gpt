@@ -14,8 +14,10 @@ data:
     pinecone_key : {{ .Values.pinecone.apikey }}
     pinecone_index : {{ .Values.pinecone.index }}
     axon_host: {{ .Values.axon.host }}
-    pincone_env : {{ .Values.pinecone.environment }}
+    pinecone_env : {{ .Values.pinecone.environment }}
     postgres_port : {{ .Values.postgres.port }}
     postgres_db : {{ .Values.postgres.db }}
     postgres_user : {{ .Values.postgres.user }}
     postgres_password : {{ .Values.postgres.password }}
+    wsp_host : {{ .Values.wsp.host }}
+    zk_slack_host : {{ .Values.zkSlack.host }}
