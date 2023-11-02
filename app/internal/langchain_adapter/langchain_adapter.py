@@ -15,7 +15,7 @@ class LangchainAdapter:
 
     def get_gpt_langchain_inference(self, issue_id, incident_id, custom_data):
         try:
-            print("Inferencing the issue data using langchain for issue id : {} and incident id: {} \n".format(issue_id,
+            logger.info(log_tag, "Inferencing the issue data using langchain for issue id : {} and incident id: {} \n".format(issue_id,
                                                                                                                incident_id))  # modify the print statement
             prompts, output_keys = self.prompt_factory_instance.generate_prompts_for_sequential_chain()
 
@@ -35,7 +35,7 @@ class LangchainAdapter:
 
     def get_user_query_gpt_langchain_inference(self, issue_id, incident_id, custom_data):
         try:
-            print("Answering the user query for the for issue id : {} and incident id: {} using langchain\n".format(
+            logger.info(log_tag, "Answering the user query for the for issue id : {} and incident id: {} using langchain\n".format(
                 issue_id,
                 incident_id))
 

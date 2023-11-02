@@ -4,8 +4,11 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.clientServices import postgresClient
 from app.clients import wsp_client
+from app.utils import zk_logger
 
 wsp_svc_client = wsp_client.WSPServiceClient()
+log_tag = "slack_reporting_scheduler"
+logger = zk_logger.logger
 
 
 def publish_issue_inference_slack_report(issue_incident_dict):
@@ -13,7 +16,7 @@ def publish_issue_inference_slack_report(issue_incident_dict):
     incident_id = issue_incident_dict["incident_id"]
     clear_reporting_timestamp = issue_incident_dict["clear_reporting_timestamp"]
 
-    print("publish_issue_inference_slack_report"+ str(issue_incident_dict))
+    logger.info(log_tag, "publish_issue_inference_slack_report" + str(issue_incident_dict))
 
     try:
         # fetch inference
@@ -27,19 +30,19 @@ def publish_issue_inference_slack_report(issue_incident_dict):
         # update the status of the slack reporting
         postgresClient.update_slack_reporting_status(issue_id, incident_id,True)
     except Exception as e:
-        print(f"Error while reporting inference for issue {issue_incident_dict}: {str(e)}")
+        logger.error(log_tag, f"Error while reporting inference for issue {issue_incident_dict}: {str(e)}")
         postgresClient.update_slack_reporting_status(issue_id, incident_id, False)
 
 
 def slack_reporting_scheduler_task():
-    print("Running slack report scheduler")
+    logger.info(log_tag, "Running slack report scheduler")
     # fetch new issues to be reported
     issues_incident_list = postgresClient.fetch_issues_to_be_reported_to_slack()
 
     if len(issues_incident_list) == 0:
-        print("reporting scheduler : No new issues found to report")
+        logger.info(log_tag, "reporting scheduler : No new issues found to report")
         return
-    print(f"Found {issues_incident_list} new issues to report")
+    logger.info(log_tag, f"Found {issues_incident_list} new issues to report")
     with ThreadPoolExecutor() as executor:
         executor.map(publish_issue_inference_slack_report, issues_incident_list)
 

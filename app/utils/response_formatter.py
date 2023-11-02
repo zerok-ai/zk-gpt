@@ -1,8 +1,11 @@
+from app.models.response.fetch_inference_respone import InferenceSummaryAnomaly
 from app.utils import zk_logger
 
 log_tag = "response_formatter"
 logger = zk_logger.logger
-def get_formatted_inference_response(issue_id: str, incident_id: str, inference: str):
+
+
+def get_formatted_inference_response(issue_id: str, incident_id: str, inference: str) -> InferenceSummaryAnomaly:
     inference_summary_anomaly = {
         "summary": None,
         "anomalies": None,
@@ -17,8 +20,9 @@ def get_formatted_inference_response(issue_id: str, incident_id: str, inference:
         else:
             # If "Anomalies" keyword is not present, store the entire response as summary
             inference_summary_anomaly["summary"] = inference.strip()
-        return inference_summary_anomaly
+
+        return InferenceSummaryAnomaly(data=inference, summary=inference_summary_anomaly["summary"], anomalies=inference_summary_anomaly["anomalies"])
     except Exception as e:
         logger.error(log_tag, "exception occurred like parsing the langchain response for issue:{} incident:{}".format(issue_id,
                                                                                                        incident_id))
-        return inference_summary_anomaly
+        return InferenceSummaryAnomaly(data=inference, summary=None, anomalies=None)

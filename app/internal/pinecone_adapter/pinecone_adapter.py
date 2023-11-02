@@ -11,6 +11,10 @@ from langchain.vectorstores import Pinecone
 
 import config
 from app.clients import axon_client
+from app.utils import zk_logger
+
+log_tag = "pinecone_adapter"
+logger = zk_logger.logger
 
 openai_key = config.configuration.get("openai_key", "")
 pinecone_index_key = config.configuration.get("pinecone_index", "zk-index-prod")
@@ -77,7 +81,7 @@ class Vectorization:
         )
         self.index_name = pinecone_index_key
         self.axon_svc_client = axon_client.AxonServiceClient()
-        print("Initiating pinecone : \n")
+        logger.info(log_tag, "Initiating pinecone : \n")
         pinecone.init(
             api_key=pinecone_api_key,
             environment=pinecone_environment
@@ -91,8 +95,6 @@ class Vectorization:
             )
 
         self.index = pinecone.Index(self.index_name)
-        print("pinecone index stats : \n")
-        print(str(self.index.describe_index_stats()))
 
     def vectorize_data_and_push(self, issue_id, incident_id, data):
 
@@ -110,11 +112,11 @@ class Vectorization:
         """
 
         if data is None:
-            print("vectororing attempt for the NULL data for issue_id : {} , incident_id: {}".format(issue_id,
+            logger.info(log_tag, "vectororing attempt for the NULL data for issue_id : {} , incident_id: {}".format(issue_id,
                                                                                                      incident_id))
             return
         if data['payload'] is None:
-            print("vectororing attempt for the NULL payload for issue_id : {} , incident_id: {}".format(issue_id,
+            logger.info(log_tag, "vectororing attempt for the NULL payload for issue_id : {} , incident_id: {}".format(issue_id,
                                                                                                         incident_id))
             return
 
@@ -175,7 +177,7 @@ class Vectorization:
             self.index.upsert(vectors=zip(ids, embeds, metadata))
 
     def get_gpt_inference_using_vector_db(self, query, issue_id, incident_id):
-        print(
+        logger.info(log_tag,
             "fetching the top vectors form the vector DB for issue: {}, incident_id: {}, specific to query: {}".format(
                 issue_id, incident_id, query))
         # write logic to fetch from vector DB.
@@ -184,11 +186,10 @@ class Vectorization:
         ans = retrieval_qa.run(query)
         response = "Query : {}\n".format(query)
         response += "Answer : {}\n".format(str(ans))
-        print(response)
         return str(ans)
 
     def fetch_data_and_vectorize_issue(self, issue):
-        print("vectoring issue with issue Id : {} \n".format(issue))
+        logger.info(log_tag, "vectoring issue with issue Id : {} \n".format(issue))
         # write vectorization logic
         # get issue summary
         issue_data = dict()
@@ -242,16 +243,16 @@ class Vectorization:
                 if str(span["protocol"]).upper() == "EXCEPTION":
                     parentSpanId = span["parent_span_id"]
                     if parentSpanId in spans_map:
-                        spans_map[parentSpanId]["exception"] = span["req_body"]
-                        exception_map.append(span["req_body"])
+                        spans_map[parentSpanId]["exception"] = span.get("req_body")
+                        exception_map.append(span.get("req_body"))
                         filtered_spans_map[parentSpanId] = spans_map[parentSpanId]
                 else:
                     filtered_spans_map[spanId] = span
 
             for spanId in filtered_spans_map:
                 span = spans_map[spanId]
-                req_payload_map.append(span['req_body'])
-                res_payload_map.append(span['resp_body'])
+                req_payload_map.append(span.get('req_body'))
+                res_payload_map.append(span.get('resp_body'))
 
             metadata = {
                 'issue-id': str(issue),
@@ -295,18 +296,17 @@ class Vectorization:
                 embeds = self.embed.embed_documents(texts)
                 self.index.upsert(vectors=zip(ids, embeds, metadata))
 
-        print("vectorzing complete for issue Id : {} \n".format(issue))
+        logger.info(log_tag, "vectorzing complete for issue Id : {} \n".format(issue))
 
     def get_gpt_inference_using_vector_db_custom_params(self, query, issue, temperature, k):
 
-        print("fetching the top {} vectors form the vector DB specific to  query".format(k))
+        logger.info(log_tag, "fetching the top {} vectors form the vector DB specific to  query".format(k))
         # write logic to fetch from vector DB.
         vector_store = self.get_vector_store(issue, None, query)
         retrieval_qa = self.initialize_llm_model_and_vector_retrieval(vector_store)
         ans = retrieval_qa.run(query)
         response = "Query : {}\n".format(query)
         response += "Answer : {}\n".format(str(ans))
-        print(response)
         return str(ans)
 
     def get_vector_store(self, issue_id, incident_id, query):
@@ -357,6 +357,4 @@ class Vectorization:
                 "issue_id": {"$eq": str(issue_id)}
             }
         )
-        # print(str(vectorstore))
-
         return docs

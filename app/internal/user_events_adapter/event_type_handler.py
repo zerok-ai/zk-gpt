@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from app.clientServices import postgresClient
 from app.clients import axon_client
-from app.enums.event_type import EventType
+from app.models.event_type import EventType
 from app.internal.inference_adapter import inference_adapter
 from app.internal.langchain_adapter import langchain_adapter
 from app.internal.pinecone_adapter import pinecone_adapter
@@ -70,17 +70,17 @@ class QNAEventStrategy(EventHandlingStrategy):
                 # remove exception span from spanMap
                 if str(span["protocol"]).upper() == "EXCEPTION" or str(span["path"]).upper() == "/EXCEPTION":
                     parent_span_id = span["parent_span_id"]
-                    exception_map.append(span["req_body"])
+                    exception_map.append(span.get("req_body"))
                     if parent_span_id in spans_map:
-                        spans_map[parent_span_id]["exception"] = span["req_body"]
+                        spans_map[parent_span_id]["exception"] = span.get("req_body")
                         filtered_spans_map[parent_span_id] = spans_map[parent_span_id]
                 else:
                     filtered_spans_map[spanId] = span
 
             for spanId in filtered_spans_map:
                 span = spans_map[spanId]
-                req_res_payload_map.append({"request_payload": span['req_body'], "span": spanId})
-                req_res_payload_map.append({"response_payload": span['resp_body'], "span": spanId})
+                req_res_payload_map.append({"request_payload": span.get('req_body'), "span": spanId})
+                req_res_payload_map.append({"response_payload": span.get('resp_body'), "span": spanId})
 
             # fetch context
             issue_context = get_issue_context(issue_id, incident_id)

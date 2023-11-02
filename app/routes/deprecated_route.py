@@ -1,9 +1,10 @@
 import uuid
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from app.services import inference_service, issue_service
+from app.models.request.gereric_request import GenericRequest
 
 router = APIRouter()
 inference_service_impl = inference_service.InferenceService()
@@ -11,8 +12,12 @@ issue_service_impl = issue_service.IssueService()
 
 
 @router.post('/v1/c/gpt/issue/inference/feedback')
-def issue_inference_user_feedback(request: Request):
-    data = request.json()
+def issue_inference_user_feedback(request: GenericRequest):
+    data = request.data
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
     request_id = data['requestId']
     feedback = data['feedback']
     score = data['score']
@@ -21,8 +26,10 @@ def issue_inference_user_feedback(request: Request):
 
 
 @router.post('/v1/c/gpt/issue/observation')
-def issue_observation_with_params(request: Request):
-    data = request.json()
+def issue_observation_with_params(request: GenericRequest):
+    data = request.data
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
     request_id = str(uuid.uuid4())
     query = data['query']
     temperature = data['temperature']
@@ -48,12 +55,12 @@ def issue_observation_with_params(request: Request):
 
 
 @router.post('/v1/c/gpt/issue/{issue_id}/observation')
-def issue_observation(issue_id: int, request: Request):
-    data = request.json()
-    print(str(data))
+def issue_observation(issue_id: str, request: GenericRequest):
+    data = request.data
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
     if 'query' in data:
         query = data['query']
-        print(query)
         answer = inference_service_impl.get_issue_observation(issue_id, query)
         return JSONResponse(content={"payload": {"query": query, "answer": answer}})
     else:
@@ -61,8 +68,10 @@ def issue_observation(issue_id: int, request: Request):
 
 
 @router.post('/v1/c/gpt/issue/{issue_id}/incident/{incident_id}')
-def query_incident(issue_id: int, incident_id: int, request: Request):
-    data = request.json()
+def query_incident(issue_id: str, incident_id: str, request: GenericRequest):
+    data = request.data
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
     if 'query' in data:
         query = data['query']
         answer = issue_service_impl.get_incident_query(issue_id, incident_id, query)
@@ -72,8 +81,10 @@ def query_incident(issue_id: int, incident_id: int, request: Request):
 
 
 @router.post('/v1/c/gpt/issue/event')
-def ingest_and_retrieve_incident_event_response(request: Request):
-    data = request.json()
+def ingest_and_retrieve_incident_event_response(request: GenericRequest):
+    data = request.data
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
     issue_id = data['issueId']
     incident_id = data['incidentId']
 
@@ -83,4 +94,4 @@ def ingest_and_retrieve_incident_event_response(request: Request):
         event_response = inference_service_impl.process_incident_event_and_get_event_response(issue_id, incident_id, event_type, event_request)
         return event_response
     else:
-        return JSONResponse(content={"error": "Missing 'event' parameter in the request body."}, status_code=400)
+        return JSONResponse(content={"error": "Missing 'event' parameter in the request body."}, status_code=status.HTTP_400_BAD_REQUEST)

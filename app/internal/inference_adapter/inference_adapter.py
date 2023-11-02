@@ -1,8 +1,11 @@
 from datetime import datetime
 from typing import Dict
 
+from fastapi import status
+
 from app.clientServices import postgresClient
 from app.clients import axon_client
+from app.exceptions.exception import InferenceGenerationException
 from app.internal.langchain_adapter import langchain_adapter
 from app.internal.pinecone_adapter import pinecone_adapter
 from app.services import slack_service
@@ -34,7 +37,7 @@ class InferenceAdapter:
         postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
                                                         issue_first_seen)
 
-        print(f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
+        logger.info(log_tag, f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
         # slack integration
         slack_service_impl.store_inference_for_reporting(issue_id, incident_id, issue_last_seen)
 
@@ -44,7 +47,7 @@ class InferenceAdapter:
         issue_last_seen = self.get_time_stamp_from_datatime(issue_data["last_seen"])
         issue_first_seen = self.get_time_stamp_from_datatime(issue_data["first_seen"])
 
-        print(f"last seen: {str(issue_last_seen)}")
+        logger.info(log_tag, f"last seen: {str(issue_last_seen)}")
 
         # getting langchain inferences
         issue_summary = axon_svc_client.get_issue_summary(issue_id)
@@ -58,13 +61,13 @@ class InferenceAdapter:
 
         issue_title = issue_summary['issue_title']
 
-        print(f"inference genereted succesfully for {issue_id} and now we are storign in DB")
+        logger.info(log_tag, f"inference genereted succesfully for {issue_id} and now we are storign in DB")
 
         # store in DB
         postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
                                                         issue_first_seen)
 
-        print(f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
+        logger.info(log_tag, f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
         # slack integration
         slack_service_impl.store_inference_for_reporting(issue_id, incident_id, issue_last_seen)
 
@@ -72,7 +75,7 @@ class InferenceAdapter:
 
     def get_langchain_inference(self, issue_id: str, incident_id: str, issue_summary: str):
         # fetch all the data required for langchain inference
-        print("starting langchain inference: ")
+        logger.info(log_tag, "starting langchain inference: ")
         spans_map = axon_svc_client.get_spans_map(issue_id, incident_id)
         exception_map = []
         req_res_payload_map = []
@@ -91,17 +94,17 @@ class InferenceAdapter:
             # remove exception span from spanMap
             if str(span["protocol"]).upper() == "EXCEPTION" or str(span["path"]).upper() == "/EXCEPTION":
                 parent_span_id = span["parent_span_id"]
-                exception_map.append(span["req_body"])
+                exception_map.append(span.get("req_body"))
                 if parent_span_id in spans_map:
-                    spans_map[parent_span_id]["exception"] = span["req_body"]
+                    spans_map[parent_span_id]["exception"] = span.get("req_body")
                     filtered_spans_map[parent_span_id] = spans_map[parent_span_id]
             else:
                 filtered_spans_map[spanId] = span
 
         for spanId in filtered_spans_map:
             span = spans_map[spanId]
-            req_res_payload_map.append({"request_payload": span['req_body'], "span": spanId})
-            req_res_payload_map.append({"response_payload": span['resp_body'], "span": spanId})
+            req_res_payload_map.append({"request_payload": span.get('req_body'), "span": spanId})
+            req_res_payload_map.append({"response_payload": span.get('resp_body'), "span": spanId})
 
         # create input variable for langchain
         custom_data = {"issue_data": str(issue_summary["issue_title"]), "trace_data": str(filtered_spans_map),
@@ -179,4 +182,6 @@ class InferenceAdapter:
             return timestamp_pg
         except Exception as e:
             logger.error(log_tag, f"Error formating datetime to timestamp datetime : {date_time_str} as error : {str(e)}")
-            raise Exception(f"Error formating datetime to timestamp datetime : {date_time_str} as error : {str(e)}")
+            raise InferenceGenerationException(f"Error formating datetime to timestamp datetime : {date_time_str} as error : {str(e)}",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             f"Error occurred during API call: {e}")

@@ -3,15 +3,18 @@ from app.dao import dataDao
 from app.internal.inference_adapter import inference_adapter
 from app.internal.pinecone_adapter import pinecone_adapter
 from app.internal.user_events_adapter import event_type_handler
-from app.utils import response_formatter
+from app.models.response.fetch_inference_respone import FetchInferenceResponse
+from app.utils import response_formatter, zk_logger
 
 inference_adapter = inference_adapter.InferenceAdapter()
 pinecone_interaction_provider = pinecone_adapter.PineconeAdapter()
+log_tag = "inference_service"
+logger = zk_logger.logger
 
 
 class InferenceService:
 
-    def get_incident_likely_cause(self, issue_id, incident_id):
+    def get_incident_likely_cause(self, issue_id: str, incident_id: str) -> FetchInferenceResponse:
         if issue_id is None:
             raise Exception("issue_id is None")
 
@@ -19,9 +22,8 @@ class InferenceService:
         inference_db, incident_id_db = postgresClient.check_if_inference_already_present_for_issue(issue_id)
 
         if inference_db is not None and incident_id_db is not None:
-            return issue_id, incident_id_db, response_formatter.get_formatted_inference_response(issue_id,
-                                                                                                 incident_id_db,
-                                                                                                 inference_db)
+            formatted_inference = response_formatter.get_formatted_inference_response(issue_id, incident_id_db, inference_db)
+            return FetchInferenceResponse(issue_id=issue_id, incident_id=incident_id_db,inference=formatted_inference)
 
         if incident_id is None or incident_id == "":
             # fetch latest incident_id for the issue
@@ -37,16 +39,19 @@ class InferenceService:
         inference = inference_adapter.generate_and_store_inference(issue_id,
                                                                    incident_id)  # check update or insert logic also
 
-        return issue_id, incident_id, response_formatter.get_formatted_inference_response(issue_id, incident_id,
-                                                                                          inference)
+        formatted_inference = response_formatter.get_formatted_inference_response(issue_id, incident_id,
+                                                                                  inference)
+        fetch_inference_response = FetchInferenceResponse(issue_id=issue_id, incident_id=incident_id,
+                                                          inference=formatted_inference)
+        return fetch_inference_response
 
     def get_all_issue_inferences(self, issue_id, limit, offset):
-        print("Fetching all the inferences for the given issue id :{issue_id}")
+        logger.info(log_tag, "Fetching all the inferences for the given issue id :{issue_id}")
         user_inferences = postgresClient.get_all_user_issue_inferences(issue_id, limit, offset)
         return user_inferences
 
     def update_user_issue_observation_feedback(self, requestId, feedback, score):
-        print("Updating the User Feedback for the infernce with requestId : {requsetId}")
+        logger.info(log_tag, "Updating the User Feedback for the infernce with requestId : {requsetId}")
         postgresClient.update_user_inference_feedback(requestId, feedback, score)
 
     def get_issue_observation_with_params(self, issue_id, query, temperature, topK, vectorEmbeddingModel, gptModel,

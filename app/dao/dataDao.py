@@ -57,24 +57,22 @@ def get_and_sanitize_spans_map(issue_id, incident_id):
     for span_id in spans_map:
         span_raw_data = axon_svc_client.get_span_raw_data(issue_id, incident_id, span_id)
         if span_raw_data is not None:
-            if len(span_raw_data["req_body"]) > MAX_PAYLOAD_SIZE:
-                span_raw_data["req_body"] = span_raw_data["req_body"][:MAX_PAYLOAD_SIZE]
-            if len(span_raw_data["resp_body"]) > MAX_PAYLOAD_SIZE:
-                span_raw_data["resp_body"] = span_raw_data["resp_body"][:MAX_PAYLOAD_SIZE]
+            if span_raw_data.get("req_body") is not None and len(span_raw_data.get("req_body")) > MAX_PAYLOAD_SIZE:
+                span_raw_data["req_body"] = span_raw_data.get("req_body")[:MAX_PAYLOAD_SIZE]
+            if span_raw_data.get("resp_body") is not None and len(span_raw_data.get("resp_body")) > MAX_PAYLOAD_SIZE:
+                span_raw_data["resp_body"] = span_raw_data.get("resp_body")[:MAX_PAYLOAD_SIZE]
             spans_map[span_id].update(span_raw_data)
 
     filtered_spans_map = dict()
     for spanId in spans_map:
         span = spans_map[spanId]
         # remove exception span from spanMap
-        if str(span["protocol"]).upper() == "EXCEPTION":
-            parentSpanId = span["parent_span_id"]
-            if parentSpanId in spans_map:
-                spans_map[parentSpanId]["exception"] = span["request_payload"]
-                filtered_spans_map[parentSpanId] = spans_map[parentSpanId]
+        if span.get("protocol") is not None and str(span.get("protocol")).upper() == "EXCEPTION":
+            parent_span_id = span.get("parent_span_id")
+            if parent_span_id is None and parent_span_id in spans_map:
+                spans_map[parent_span_id]["exception"] = span["request_payload"]
+                filtered_spans_map[parent_span_id] = spans_map[parent_span_id]
         else:
             filtered_spans_map[spanId] = span
-
-    print(filtered_spans_map)
 
     return filtered_spans_map

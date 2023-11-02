@@ -1,6 +1,7 @@
-from fastapi import HTTPException, Path, Body, APIRouter, Query
+from fastapi import HTTPException, APIRouter, Query, status
 from fastapi.responses import JSONResponse
 
+from app.models.request.gereric_request import GenericRequest
 from app.services import user_events_service, issue_service
 
 router = APIRouter()
@@ -9,21 +10,24 @@ user_events_service_impl = user_events_service.UserEventsService()
 
 
 @router.post('/v1/c/gpt/issue/{issue_id}/incident/{incident_id}')
-async def query_incident(
-        issue_id: str = Path(..., description="Issue ID"),
-        incident_id: str = Path(..., description="Incident ID"),
-        data: dict = Body(..., description="Request body containing 'query' parameter")
+def query_incident(
+        issue_id: str,
+        incident_id: str,
+        request: GenericRequest
 ):
+    data = request.data
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
     if 'query' in data:
         query = data['query']
         answer = issue_service_impl.get_incident_query(issue_id, incident_id, query)
         return {"payload": {"answer": answer}}
     else:
-        raise HTTPException(status_code=400, detail="Missing 'query' parameter in the request body")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing 'query' parameter in the request body")
 
 
 @router.get('/v1/c/gpt/incident/{issue_id}/list/events')
-def get_issue_incident_list_events(issue_id: int,
+def get_issue_incident_list_events(issue_id: str,
                                    limit: int = Query(default=10, description="Number of items to return", ge=1),
                                    offset: int = Query(default=0, description="Offset for pagination", ge=0)):
     total_count, user_conserve_events_response = user_events_service_impl.get_user_conversation_events(issue_id, limit, offset)

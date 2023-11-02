@@ -12,7 +12,7 @@ postgres_user = config.configuration.get("postgres_user", "postgres")
 postgres_pass = config.configuration.get("postgres_pass", "eo1Mgtm6HI")
 
 
-def get_all_user_issue_inferences(issue_id, limit, offset):
+def get_all_user_issue_inferences(issue_id: str, limit: int, offset: int):
     db_params = get_postgres_db_params()
     conn = psycopg2.connect(**db_params)
 

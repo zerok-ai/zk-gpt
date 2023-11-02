@@ -1,7 +1,9 @@
 import requests
+from fastapi import status
 
 from app import config
 from app.clients.api_client import APIClient
+from app.exceptions.exception import ClientInteractionException
 from app.utils import zk_logger
 
 axon_host = config.configuration.get("axon_host", "localhost:8080")
@@ -23,6 +25,9 @@ class AxonServiceClient:
             return issues_data
         except requests.exceptions.RequestException as e:
             logger.error(log_tag, f"Error while fetching latest issue for a given time : {e}")
+            raise ClientInteractionException("Error while fetching latest issue for a given time",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             str(e))
 
     def get_span_raw_data(self, issue_id: str, incident_id: str, span_id: str):
         endpoint = f"v1/c/axon/issue/{issue_id}/incident/{incident_id}/span/{span_id}"
@@ -32,7 +37,8 @@ class AxonServiceClient:
             span_rawdata = data['payload']['span_raw_data_details'].get(span_id)
             return span_rawdata
         except requests.exceptions.RequestException as e:
-            logger.error(log_tag, f"Error occurred during API call: {e}")
+            logger.error(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
+            raise ClientInteractionException("error occurred while fetch span raw data", status.HTTP_500_INTERNAL_SERVER_ERROR, f"Error occurred during API call: {e}")
 
     def get_issue_incidents(self, issue_id: str):
         endpoint = f"v1/c/axon/issue/{issue_id}/incident"
@@ -44,6 +50,9 @@ class AxonServiceClient:
             return incidents
         except requests.exceptions.RequestException as e:
             logger.error(log_tag, f"Error while fetching incident Ids for a given issue : {e}")
+            raise ClientInteractionException("Error while fetching incident Ids for a given issue",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             f"Error occurred during API call: {e}")
 
     def get_spans_map(self, issue_id: str, incident_id: str):
         endpoint = f"v1/c/axon/issue/{issue_id}/incident/{incident_id}"
@@ -54,7 +63,10 @@ class AxonServiceClient:
             spans_map = data['payload']['spans']
             return spans_map
         except requests.exceptions.RequestException as e:
-            logger.error(log_tag, f"Error occurred during API call: {e}")
+            logger.error(log_tag, f"Error occurred while fetching span maps from axon during API call: {e}")
+            raise ClientInteractionException("Error while fetching spans Map",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             f"Error occurred during API call: {e}")
 
     def get_scenario_stats(self, scenario_id: str):
         endpoint = f"v1/c/axon/scenario"
@@ -65,7 +77,10 @@ class AxonServiceClient:
             scenario_detail = data['payload']['scenarios']
             return scenario_detail
         except requests.exceptions.RequestException as e:
-            logger.error(log_tag, f"Error occurred during API call: {e}")
+            logger.error(log_tag, f"Error occurred while fetching scenario stats: {e}")
+            raise ClientInteractionException("Error occurred while fetching scenario stats",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             str(e))
 
     def get_issue_summary(self, issue_id: str):
         endpoint = f"v1/c/axon/issue/{issue_id}"
@@ -75,4 +90,7 @@ class AxonServiceClient:
             issue_summary = data['payload']['issue']
             return issue_summary
         except requests.exceptions.RequestException as e:
-            logger.error(log_tag, f"Error occurred during API call: {e}")
+            logger.error(log_tag, f"Error occurred while fetching issue summary: {e}")
+            raise ClientInteractionException("Error occurred while fetching issue summary",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             str(e))

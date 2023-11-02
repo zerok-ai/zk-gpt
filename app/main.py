@@ -2,9 +2,13 @@ import uvicorn
 from fastapi import FastAPI
 
 import config
+from app.utils import zk_logger
 from routes import internal_demo_route, inference_route, events_route, deprecated_route
 from schedulers.issue_inference_generation_scheduler import issue_scheduler
 from schedulers.slack_reporting_scheduler import slack_reporting_scheduler
+
+log_tag = "main"
+logger = zk_logger.logger
 
 app = FastAPI()
 
@@ -21,7 +25,7 @@ def fetch_secrets_and_load_config():
         # If successful, return True
         return True
     except Exception as e:
-        print(f"Error fetching config and secrets: {str(e)}")
+        logger.error(log_tag, f"Error fetching config and secrets: {str(e)}")
         return False
 
 

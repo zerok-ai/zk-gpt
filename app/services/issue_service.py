@@ -1,10 +1,12 @@
 import config
 from app import gpt
 from app.clients import axon_client, redis_client
+from app.dao import dataDao
 from app.internal.langchain_adapter import langchain_adapter
 from app.internal.pinecone_adapter import pinecone_adapter
+from app.models.response.incident_rca_response import IncidentRcaResponse
 from app.services import inference_service
-from app.dao import dataDao
+from app.utils import zk_logger
 
 GPTServiceProvider = gpt.GPTServiceProvider()
 MAX_PAYLOAD_SIZE = config.configuration.get("max_span_raw_data_length", 100)
@@ -13,6 +15,8 @@ pinecone_interaction_provider = pinecone_adapter.PineconeAdapter()
 axon_svc_client = axon_client.AxonServiceClient()
 redis_svc_client = redis_client.RedisServiceClient()
 inference_service_impl = inference_service.InferenceService()
+log_tag = "issue_service"
+logger = zk_logger.logger
 
 
 class IssueService:
@@ -53,7 +57,7 @@ class IssueService:
 
         return answer
 
-    def get_incident_rca(self, issue_id, incident_id, rca_using_langchain_inference):
+    def get_incident_rca(self, issue_id, incident_id, rca_using_langchain_inference) -> IncidentRcaResponse:
         # rcaUsingLangchianInference is true get infernce from langchain pipeline
         if rca_using_langchain_inference:
             return inference_service_impl.get_incident_likely_cause(issue_id, incident_id, False)
@@ -102,21 +106,21 @@ class IssueService:
 
         gptInstance.setContext("Following are the spans:")
 
-        spansMap = dataDao.get_and_sanitize_spans_map(issue_id, incident_id)
-        spanList = []
+        spans_map = dataDao.get_and_sanitize_spans_map(issue_id, incident_id)
+        span_list = []
         # provide spans as context
-        for spanId in spansMap:
-            span = spansMap[spanId]
-            spanContext = str(span)
-            spanList.append(spanContext)
-            gptInstance.setContext(spanContext)
+        for spanId in spans_map:
+            span = spans_map[spanId]
+            span_context = str(span)
+            span_list.append(span_context)
+            gptInstance.setContext(span_context)
 
         question = "Summarise the root cause of the issue in above trace in 2 lines. including exception, infra or payload details needed to explain the cause of issue."
         answer = gptInstance.findAnswers(question)
-
-        print("Q:" + question)
-        print("A:" + answer)
-        return answer
+        incident_rca_response = IncidentRcaResponse(rca=answer)
+        logger.info(log_tag, "Q:" + question)
+        logger.info(log_tag, "A:" + answer)
+        return incident_rca_response
 
     def get_incident_query(self, issue_id, incident_id, query):
         if not GPTServiceProvider.hasHandler(issue_id + "-" + incident_id):
@@ -125,8 +129,8 @@ class IssueService:
         gpt_instance = GPTServiceProvider.registerGPTHandler(issue_id + "-" + incident_id)
         answer = gpt_instance.findAnswers(query)
 
-        print("Q:" + query)
-        print("A:" + answer)
+        logger.info(log_tag, "Q:" + query)
+        logger.info(log_tag, "A:" + answer)
 
         return answer
 

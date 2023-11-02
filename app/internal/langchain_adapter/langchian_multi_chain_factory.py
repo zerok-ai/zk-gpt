@@ -2,9 +2,12 @@ from langchain.chains import LLMChain
 from langchain.llms import OpenAI
 
 import config
+from app.utils import zk_logger
 
 openai_api_key = config.configuration.get("openai_key", "")
 openai__model = config.configuration.get("openai__model", "")
+log_tag = "langchain_multichain_factory"
+logger = zk_logger.logger
 
 
 class LangChainMultichainFactory:
@@ -23,5 +26,5 @@ class LangChainMultichainFactory:
                 sequential_chains.append(chain)
             return sequential_chains
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logger.error(log_tag, f"An error occurred: {e}")
             return []

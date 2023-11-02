@@ -1,8 +1,13 @@
-import yaml
 import os
-import requests
 import time
-from utils import app_constants
+
+import requests
+import yaml
+
+from utils import app_constants, zk_logger
+
+log_tag = "config"
+logger = zk_logger.logger
 
 
 class Config:
@@ -46,7 +51,6 @@ class Config:
             response.raise_for_status()  # Raise an exception for non-200 status codes
             response_data = response.json()
             data = response_data['payload']
-            print(data)
             return {
                 "openai_key": data['openAI_key'],
                 "pinecone_key": data['pinecone_key'],
@@ -60,7 +64,7 @@ class Config:
             #     "pinecone_env": "us-west4-gcp-free"
             # }
         except requests.exceptions.RequestException as e:
-            print(f"Secrets Fetch failed with error: {str(e)}")
+            logger.error(log_tag, f"Secrets Fetch failed with error: {str(e)}")
             return None
 
     def _fetch_secrets_with_retry(self):
@@ -75,10 +79,10 @@ class Config:
             # Exponential backoff, increase the retry timeout exponentially
             retries += 1
             sleep_duration = base_timeout * (2 ** retries)
-            print(f"Retrying in {sleep_duration} seconds... for fetching the secrets")
+            logger.info(log_tag, f"Retrying in {sleep_duration} seconds... for fetching the secrets")
             time.sleep(sleep_duration)
         if self.secrets is None:
-            print("Unable to fetch zk-llm Secrets from Server")
+            logger.error(log_tag, "Unable to fetch zk-llm Secrets from Server")
             raise Exception("Unable to fetch zk-llm Secrets from Server")
 
     @staticmethod
@@ -89,7 +93,7 @@ class Config:
             response_data = response.json()
             data = response_data['payload']
             if data is None or data['clusterId'] is None:
-                print("cluster data is None")
+                logger.error(log_tag, "cluster data is None")
                 raise Exception("cluster Id is None")
             return data
             # return {

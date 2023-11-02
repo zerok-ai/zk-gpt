@@ -1,7 +1,10 @@
 from typing import Dict
 
+from fastapi import status
+
 from app import config
 from app.clients.api_client import APIClient
+from app.exceptions.exception import ClientInteractionException
 from app.utils import zk_logger
 
 cluster_id = config.configuration.get("clusterId", "")
@@ -42,4 +45,6 @@ class WSPServiceClient:
         except Exception as e:
             logger.error(log_tag, f"An error occurred while reporting inference to slack for issue: {issue_id} with "
                                   f"error: {e}")
-            raise Exception("failed to push inference")
+            raise ClientInteractionException("Error occurred while pushing inference to WSP",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             f"Error occurred during API call: {e}")
