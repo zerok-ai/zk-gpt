@@ -1,15 +1,13 @@
 from abc import ABC, abstractmethod
 
-from flask import jsonify
-
-from app.utils import context_cache
-from app.internal.langchain_adapter import langchain_adapter
-from app.internal.inference_adapter import inference_adapter
-from app.internal.pinecone_adapter import pinecone_adapter
-from app.utils import response_formatter
-from app.clients import axon_client
 from app.clientServices import postgresClient
+from app.clients import axon_client
 from app.enums.event_type import EventType
+from app.internal.inference_adapter import inference_adapter
+from app.internal.langchain_adapter import langchain_adapter
+from app.internal.pinecone_adapter import pinecone_adapter
+from app.utils import context_cache
+from app.utils import response_formatter
 
 pinecone_interaction_provider = pinecone_adapter.PineconeAdapter()
 lang_chain_inference_provider = langchain_adapter.LangchainAdapter()
@@ -127,7 +125,7 @@ class QNAEventStrategy(EventHandlingStrategy):
             postgresClient.upsert_issue_incident_context(issue_id, incident_id, issue_context)
             #  upsert the context to cache
 
-            return jsonify({"payload": dict(issueId=issue_id, incidentId=incident_id, event=event_response)})
+            return {"payload": dict(issueId=issue_id, incidentId=incident_id, event=event_response)}
 
 
 class UserAdditionEventStrategy(EventHandlingStrategy):
@@ -153,7 +151,7 @@ class InferenceEventStrategy(EventHandlingStrategy):
 
             # TODO: update the context of the issue
 
-            return jsonify({"payload": dict(issueId=issue_id, incidentId=incident_id, event=event_response)})
+            return {"payload": dict(issueId=issue_id, incidentId=incident_id, event=event_response)}
 
 
 class TraceSwitchEventStrategy(EventHandlingStrategy):
@@ -181,7 +179,7 @@ class TraceSwitchEventStrategy(EventHandlingStrategy):
 
             # TODO: update the context of the issue
 
-            return jsonify({"payload": dict(issueId=issue_id, incidentId=incident_id, event=event_response)})
+            return {"payload": dict(issueId=issue_id, incidentId=incident_id, event=event_response)}
 
 
 # Create a strategy map
