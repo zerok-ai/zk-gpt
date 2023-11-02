@@ -110,7 +110,7 @@ def getSpanRawdata(issue_id, incident_id, span_id):
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception for HTTP errors (4xx and 5xx status codes)
         data = response.json()
-        spanRawdata = data['payload']['span_raw_data_details'].get(span_id,default=None)
+        spanRawdata = data['payload']['span_raw_data_details'].get("span_id",default=None)
         return spanRawdata
     except requests.exceptions.RequestException as e:
         print(f"Error occurred during API call: {e}")
