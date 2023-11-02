@@ -238,16 +238,16 @@ class Vectorization:
                 if str(span["protocol"]).upper() == "EXCEPTION":
                     parentSpanId = span["parent_span_id"]
                     if parentSpanId in spansMap:
-                        spansMap[parentSpanId]["exception"] = span["req_body"]
-                        exceptionMap.append(span["req_body"])
+                        spansMap[parentSpanId]["exception"] = span.get("req_body")
+                        exceptionMap.append(span.get("req_body"))
                         filteredSpansMap[parentSpanId] = spansMap[parentSpanId]
                 else:
                     filteredSpansMap[spanId] = span
 
             for spanId in filteredSpansMap:
                 span = spansMap[spanId]
-                reqPayloadMap.append(span['req_body'])
-                resPayloadMap.append(span['resp_body'])
+                reqPayloadMap.append(span.get('req_body'))
+                resPayloadMap.append(span.get('resp_body'))
 
             metadata = {
                 'issue-id': str(issue),

@@ -69,17 +69,17 @@ class QNAEventStrategy(EventHandlingStrategy):
                 # remove exception span from spanMap
                 if str(span["protocol"]).upper() == "EXCEPTION" or str(span["path"]).upper() == "/EXCEPTION":
                     parent_span_id = span["parent_span_id"]
-                    exception_map.append(span["req_body"])
+                    exception_map.append(span.get("req_body"))
                     if parent_span_id in spans_map:
-                        spans_map[parent_span_id]["exception"] = span["req_body"]
+                        spans_map[parent_span_id]["exception"] = span.get("req_body")
                         filtered_spans_map[parent_span_id] = spans_map[parent_span_id]
                 else:
                     filtered_spans_map[spanId] = span
 
             for spanId in filtered_spans_map:
                 span = spans_map[spanId]
-                req_res_payload_map.append({"request_payload": span['req_body'], "span": spanId})
-                req_res_payload_map.append({"response_payload": span['resp_body'], "span": spanId})
+                req_res_payload_map.append({"request_payload": span.get("req_body"), "span": spanId})
+                req_res_payload_map.append({"response_payload": span.get("resp_body"), "span": spanId})
 
             # fetch context
             issue_context = get_issue_context(issue_id, incident_id)
