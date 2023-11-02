@@ -29,7 +29,7 @@ class AxonServiceClient:
         try:
             response = self.api_client.get(endpoint=endpoint)
             data = response
-            span_rawdata = data['payload']['span_raw_data_details'].get(span_id,default=None)
+            span_rawdata = data['payload']['span_raw_data_details'].get("span_id",default=None)
             return span_rawdata
         except requests.exceptions.RequestException as e:
             logger.error(log_tag, f"Error occurred during API call: {e}")
