@@ -224,7 +224,8 @@ class Vectorization:
             resPayloadMap = []
             for span_id in spansMap:
                 spanRawData = client.getSpanRawdata(issue, incident, span_id)
-                spansMap[span_id].update(spanRawData)
+                if spanRawData is not None:
+                    spansMap[span_id].update(spanRawData)
 
             filteredSpansMap = dict()
             for spanId in spansMap:

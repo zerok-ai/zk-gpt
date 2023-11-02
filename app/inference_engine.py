@@ -72,7 +72,8 @@ def get_langchain_inference(issue_id, incident_id, issue_summary):
     req_res_payload_map = []
     for span_id in spans_map:
         span_raw_data = client.getSpanRawdata(issue_id, incident_id, span_id)
-        spans_map[span_id].update(span_raw_data)
+        if span_raw_data is not None:
+            spans_map[span_id].update(span_raw_data)
 
     filtered_spans_map = dict()
     for spanId in spans_map:

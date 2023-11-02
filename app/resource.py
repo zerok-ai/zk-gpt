@@ -58,11 +58,12 @@ def getAndSanitizeSpansMap(issue_id, incident_id):
     spansMap = client.getSpansMap(issue_id, incident_id)
     for span_id in spansMap:
         spanRawData = client.getSpanRawdata(issue_id, incident_id, span_id)
-        if len(spanRawData["req_body"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["req_body"] = spanRawData["req_body"][:MAX_PAYLOAD_SIZE]
-        if len(spanRawData["resp_body"]) > MAX_PAYLOAD_SIZE:
-            spanRawData["resp_body"] = spanRawData["resp_body"][:MAX_PAYLOAD_SIZE]
-        spansMap[span_id].update(spanRawData)
+        if spanRawData is not None:
+            if len(spanRawData["req_body"]) > MAX_PAYLOAD_SIZE:
+                spanRawData["req_body"] = spanRawData["req_body"][:MAX_PAYLOAD_SIZE]
+            if len(spanRawData["resp_body"]) > MAX_PAYLOAD_SIZE:
+                spanRawData["resp_body"] = spanRawData["resp_body"][:MAX_PAYLOAD_SIZE]
+            spansMap[span_id].update(spanRawData)
 
     filteredSpansMap = dict()
     for spanId in spansMap:
