@@ -56,11 +56,12 @@ def get_and_sanitize_spans_map(issue_id, incident_id):
     spans_map = axon_svc_client.get_spans_map(issue_id, incident_id)
     for span_id in spans_map:
         span_raw_data = axon_svc_client.get_span_raw_data(issue_id, incident_id, span_id)
-        if len(span_raw_data["req_body"]) > MAX_PAYLOAD_SIZE:
-            span_raw_data["req_body"] = span_raw_data["req_body"][:MAX_PAYLOAD_SIZE]
-        if len(span_raw_data["resp_body"]) > MAX_PAYLOAD_SIZE:
-            span_raw_data["resp_body"] = span_raw_data["resp_body"][:MAX_PAYLOAD_SIZE]
-        spans_map[span_id].update(span_raw_data)
+        if span_raw_data is not None:
+            if len(span_raw_data["req_body"]) > MAX_PAYLOAD_SIZE:
+                span_raw_data["req_body"] = span_raw_data["req_body"][:MAX_PAYLOAD_SIZE]
+            if len(span_raw_data["resp_body"]) > MAX_PAYLOAD_SIZE:
+                span_raw_data["resp_body"] = span_raw_data["resp_body"][:MAX_PAYLOAD_SIZE]
+            spans_map[span_id].update(span_raw_data)
 
     filtered_spans_map = dict()
     for spanId in spans_map:

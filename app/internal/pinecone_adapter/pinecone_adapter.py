@@ -228,7 +228,8 @@ class Vectorization:
             res_payload_map = []
             for span_id in spans_map:
                 span_raw_data = self.axon_svc_client.get_span_raw_data(issue, incident, span_id)
-                spans_map[span_id].update(span_raw_data)
+                if span_raw_data is not None:
+                    spans_map[span_id].update(span_raw_data)
 
             filtered_spans_map = dict()
             for spanId in spans_map:
