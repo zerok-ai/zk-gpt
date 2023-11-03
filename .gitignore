@@ -2,3 +2,6 @@
 venv
 __pycache__
 config/config.yaml
+build
+dist
+main.spec
