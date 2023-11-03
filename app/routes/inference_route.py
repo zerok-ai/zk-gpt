@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Query, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 
-from app.models.response.gereric_respone import GenericResponse
+from app.models.response.generic_response import GenericResponse
 from app.services import issue_service, inference_service
 from app.models.request.fetch_inference_request import FetchInferenceRequest
+from app.models.response.fetch_inference_respone import FetchInferenceResponse, FetchInferenceResponseDashboard
 
 router = APIRouter()
 issue_service = issue_service.IssueService()
@@ -30,15 +31,16 @@ def get_all_issue_inferences(issue_id: str,
     return {"payload": {"issueId": issue_id, "UserInferences": all_user_inferences}}
 
 
-@router.post('/v1/c/gpt/incident/inference', response_model=GenericResponse)
-def get_issue_incident_inference(request: FetchInferenceRequest):
-    data = request.data
+@router.post('/v1/c/gpt/incident/inference')
+def get_issue_incident_inference(data: FetchInferenceRequest):
+    request_data = data.data
     if data is None or not data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
-    issue_id = data['issueId']
-    incident_id = data['incidentId']
+    issue_id = request_data.get('issueId')
+    incident_id = request_data.get('incidentId')
     fetch_inference_response = inference_service.get_incident_likely_cause(issue_id, incident_id)
-    return GenericResponse(payload=fetch_inference_response)
+    response = FetchInferenceResponseDashboard(payload=fetch_inference_response)
+    return JSONResponse(content=response.to_dict(), status_code=200)
 
 
 

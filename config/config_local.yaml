@@ -7,7 +7,7 @@ pinecone_key: cc77b1e4-3ec0-4b4f-a3eb-93453e1c43c2
 pinecone_index: zk-index-prod
 axon_host: localhost:8080
 pinecone_env: us-west4-gcp-free
-postgres_port: 5101
+postgres_port: 5411
 postgres_db: gpt
 postgres_user: postgres
 postgres_password: eo1Mgtm6HI

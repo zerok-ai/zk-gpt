@@ -23,7 +23,7 @@ class InferenceService:
 
         if inference_db is not None and incident_id_db is not None:
             formatted_inference = response_formatter.get_formatted_inference_response(issue_id, incident_id_db, inference_db)
-            return FetchInferenceResponse(issue_id=issue_id, incident_id=incident_id_db,inference=formatted_inference)
+            return FetchInferenceResponse(issueId=issue_id, incidentId=incident_id_db,inference=formatted_inference)
 
         if incident_id is None or incident_id == "":
             # fetch latest incident_id for the issue
@@ -41,7 +41,7 @@ class InferenceService:
 
         formatted_inference = response_formatter.get_formatted_inference_response(issue_id, incident_id,
                                                                                   inference)
-        fetch_inference_response = FetchInferenceResponse(issue_id=issue_id, incident_id=incident_id,
+        fetch_inference_response = FetchInferenceResponse(issueId=issue_id, incidentId=incident_id,
                                                           inference=formatted_inference)
         return fetch_inference_response
 

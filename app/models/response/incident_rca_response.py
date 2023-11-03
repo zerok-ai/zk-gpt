@@ -1,4 +1,4 @@
-from app.models.response.gereric_respone import GenericResponseInterface
+from app.models.response.generic_response import GenericResponseInterface
 
 
 class IncidentRcaResponse(GenericResponseInterface):
