@@ -1,9 +1,16 @@
-FROM python:3.9-slim
+FROM --platform=linux/arm64/v8 python:3.9-slim
 
-COPY ./app /zk/app
-WORKDIR /zk/app
-ENV PYTHONPATH=/zk
+#FROM python:3.9-slim
+
+WORKDIR /zk
+
+COPY ./app/requirements.txt /zk/
+COPY ./dist/zk-gpt /zk/zk-gpt
+COPY ./config/config.yaml /zk/config/config.yaml
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "main.py"]
+CMD ["/zk/zk-gpt"]
+
+#ENV PYTHONPATH=/zk
+#CMD ["python", "main.py"]
