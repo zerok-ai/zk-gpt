@@ -4,4 +4,4 @@ __pycache__
 config/config.yaml
 build
 dist
-main.spec
+zk-gpt.spec
