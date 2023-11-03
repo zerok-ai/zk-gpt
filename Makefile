@@ -5,6 +5,7 @@ clean:
 
 ci-cd-build: clean
 	echo "\n >> ci-cd-build "
+	pip install pyinstaller
 	pyinstaller app/main.py --target-arch arm64 --onefile --name zk-gpt
 
 docker-build: ci-cd-build

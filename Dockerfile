@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64/v8 python:3.9-slim
+FROM  python:3.9-slim
 
 #FROM python:3.9-slim
 
@@ -9,6 +9,8 @@ COPY ./dist/zk-gpt /zk/zk-gpt
 COPY ./config/config.yaml /zk/config/config.yaml
 
 RUN pip install -r requirements.txt
+
+CMD ["uname -m"]
 
 CMD ["/zk/zk-gpt"]
 
