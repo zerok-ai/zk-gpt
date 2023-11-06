@@ -24,12 +24,13 @@ WORKDIR /zk
 
 # Copy the built application from the builder stage
 COPY --from=builder /zk/dist /zk
+COPY --from=builder /zk/app/requirements.txt /zk
 
 # base name of the executable
 ENV exeARM64="zk-gpt-arm64"
 ENV exeAMD64="zk-gpt-amd64"
 
-RUN pip install -r app/requirements.txt
+RUN pip install -r requirements.txt
 # copy the start script
 COPY app-start.sh .
 
