@@ -24,3 +24,8 @@ class APIClient:
         response = requests.put(url, json=data, headers=headers)
         response.raise_for_status()
         return response.json()
+
+    def post_without_response(self, endpoint: str, data: Dict, headers: Optional[Dict] = None):
+        url = f"{self.base_url}/{endpoint}"
+        response = requests.post(url, json=data, headers=headers)
+        response.raise_for_status()
