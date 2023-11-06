@@ -32,6 +32,8 @@ ENV exeAMD64="zk-gpt-amd64"
 # copy the start script
 COPY app-start.sh .
 RUN chmod +x app-start.sh
+RUN chmod +x zk-gpt-arm64
+RUN chmod +x zk-gpt-amd64
 
 ## call the start script
 CMD ["sh","-c","./app-start.sh --amd64 ${exeAMD64} --arm64 ${exeARM64} -c config/config.yaml"]
