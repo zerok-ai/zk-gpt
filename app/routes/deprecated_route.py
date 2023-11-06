@@ -78,20 +78,3 @@ def query_incident(issue_id: str, incident_id: str, request: GenericRequest):
         return JSONResponse(content={"payload": {"answer": answer}})
     else:
         return JSONResponse(content={"error": "Missing 'query' parameter in the request body."}, status_code=400)
-
-
-@router.post('/v1/c/gpt/issue/event')
-def ingest_and_retrieve_incident_event_response(request: GenericRequest):
-    data = request.data
-    if data is None or not data:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
-    issue_id = data['issueId']
-    incident_id = data['incidentId']
-
-    if 'event' in data:
-        event_request = data['event']
-        event_type = event_request['type']
-        event_response = inference_service_impl.process_incident_event_and_get_event_response(issue_id, incident_id, event_type, event_request)
-        return event_response
-    else:
-        return JSONResponse(content={"error": "Missing 'event' parameter in the request body."}, status_code=status.HTTP_400_BAD_REQUEST)
