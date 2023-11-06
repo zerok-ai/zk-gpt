@@ -43,7 +43,7 @@ jobs:
 
   # build migration image and push docker image to docker repository
   migration-build-push:
-    uses: zerok-ai/zk-git-actions/.github/workflows/zk-build-push.yml@main
+    uses: zerok-ai/zk-git-actions/.github/workflows/zk-build-push-multiarch.yml@main
     with:
       VERSION: ${{ needs.init.outputs.VERSION }}
       ENVIRONMENT: ${{ needs.init.outputs.ENVIRONMENT }}
