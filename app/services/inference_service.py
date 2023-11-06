@@ -3,6 +3,7 @@ from app.dao import dataDao
 from app.internal.inference_adapter import inference_adapter
 from app.internal.pinecone_adapter import pinecone_adapter
 from app.internal.user_events_adapter import event_type_handler
+from app.models.request.user_qna_event_request import UserQnaEvent
 from app.models.response.fetch_inference_respone import FetchInferenceResponse
 from app.utils import response_formatter, zk_logger
 
@@ -70,7 +71,7 @@ class InferenceService:
 
         return pinecone_interaction_provider.get_gpt_inferences_for_query_custom_data(issue_id, query, 0.3, 30)
 
-    def process_incident_event_and_get_event_response(self, issue_id, incident_id, event_type, event):
+    def process_incident_event_and_get_event_response(self, issue_id: str, incident_id: str, event_type: str, event: UserQnaEvent):
         # understand the event type
         # if event type is :
         # "QNA" then push fetch the context and fetch the pinecone vectors and also eventRequest as prompt to GPT
