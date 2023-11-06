@@ -1,9 +1,10 @@
-import psycopg2
-from psycopg2 import extras
-import requests
 import pickle
 
-import config
+import psycopg2
+import requests
+from psycopg2 import extras
+
+from app import config
 
 postgres_host = config.configuration.get("postgres_host", "localhost")
 postgres_port = config.configuration.get("postgres_port", "5432")

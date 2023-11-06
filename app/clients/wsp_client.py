@@ -21,10 +21,6 @@ class WSPServiceClient:
     def __init__(self):
         self.api_client = APIClient(base_url=wsp_host)
 
-    def get_wsp_data(self, wsp_id: int) -> Dict:
-        endpoint = f"wsp/{wsp_id}"
-        return  self.api_client.get(endpoint)
-
     def publish_inference_to_slack(self, issue_id: str, incident_id: str, inference: str, issue_title: str):
         endpoint = f"request"
         payload = {
@@ -40,7 +36,7 @@ class WSPServiceClient:
             'Content-Type': 'application/json'
         }
         try:
-            response = self.api_client.post(endpoint=endpoint, data=payload, headers=headers)
+            self.api_client.post_without_response(endpoint=endpoint, data=payload, headers=headers)
             logger.info(log_tag, f"inference pushed to slack for issueId : {issue_id}")
         except Exception as e:
             logger.error(log_tag, f"An error occurred while reporting inference to slack for issue: {issue_id} with "

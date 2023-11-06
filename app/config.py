@@ -4,7 +4,7 @@ import time
 import requests
 import yaml
 
-from utils import app_constants, zk_logger
+from app.utils import app_constants, zk_logger
 
 log_tag = "config"
 logger = zk_logger.logger

@@ -43,7 +43,7 @@ class InferenceAdapter:
 
         return inference
 
-    def generate_and_store_inference_for_scheduler(self, issue_id: str, incident_id: str, issue_data):
+    def generate_inference_for_scheduler(self, issue_id: str, incident_id: str, issue_data: Dict[str, str]):
         issue_last_seen = self.get_time_stamp_from_datatime(issue_data["last_seen"])
         issue_first_seen = self.get_time_stamp_from_datatime(issue_data["first_seen"])
 

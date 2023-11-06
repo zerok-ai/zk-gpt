@@ -11,7 +11,7 @@ from app.utils import response_formatter
 
 pinecone_interaction_provider = pinecone_adapter.PineconeAdapter()
 lang_chain_inference_provider = langchain_adapter.LangchainAdapter()
-inference_adapter = inference_adapter.InferenceAdapter()
+inference_adapter_impl = inference_adapter.InferenceAdapter()
 in_memory_context = context_cache.ContextCache(1000)
 axon_svc_client = axon_client.AxonServiceClient()
 
@@ -141,8 +141,8 @@ class InferenceEventStrategy(EventHandlingStrategy):
             inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, incident_id)
             # inference = None -> not present
             if inference is None:
-                inference = inference_adapter.generate_and_store_inference(issue_id,
-                                                                          incident_id)
+                inference = inference_adapter_impl.generate_and_store_inference(issue_id,
+                                                                                incident_id)
             # store the event conversation in DB
             inference_request = "Get likely cause for the issue : {}".format(issue_id)
             likely_cause = response_formatter.get_formatted_inference_response(issue_id, incident_id, inference)
@@ -169,8 +169,8 @@ class TraceSwitchEventStrategy(EventHandlingStrategy):
             inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, new_incident)
             # inference = None -> not present
             if inference is None:
-                inference = inference_adapter.generate_and_store_inference(issue_id,
-                                                                          new_incident)
+                inference = inference_adapter_impl.generate_and_store_inference(issue_id,
+                                                                                new_incident)
 
             event_response = dict(type=EventType.CONTEXT_SWITCH.value, request=context_switch_request, response=context_switch_response,
                                   oldIncident=old_incident, newIncident=new_incident)
