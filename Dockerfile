@@ -20,10 +20,10 @@ RUN pyinstaller app/main.py --target-arch amd64 --onefile --name zk-gpt-amd64
 # Second stage: create the runtime image
 FROM python:3.9-slim
 
-WORKDIR /zk/zk-gpt
+WORKDIR /zk
 
 # Copy the built application from the builder stage
-COPY --from=builder /zk/dist /zk/zk-gpt
+COPY --from=builder /zk/dist /zk
 
 # base name of the executable
 ENV exeARM64="zk-gpt-arm64"
