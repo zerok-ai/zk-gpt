@@ -18,7 +18,7 @@ OUTPUT : returns the requested data across different datasets
 8) get pod status 
 9) get logs <backlog>
 """
-import config
+from app import config
 
 from app.clients import axon_client
 

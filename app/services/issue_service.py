@@ -1,4 +1,4 @@
-import config
+from app import config
 from app import gpt
 from app.clients import axon_client, redis_client
 from app.dao import dataDao

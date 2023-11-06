@@ -1,7 +1,7 @@
 from langchain.chains import LLMChain
 from langchain.llms import OpenAI
 
-import config
+from app import config
 from app.utils import zk_logger
 
 openai_api_key = config.configuration.get("openai_key", "")
