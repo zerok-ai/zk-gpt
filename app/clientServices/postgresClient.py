@@ -305,7 +305,7 @@ def check_if_inference_already_present_reporting_scheduler(issue_id, incident_id
     cur = conn.cursor()
 
     # SQL query to check for the existence of a record with the given issue_id
-    query = """SELECT inference ,issue_title, issue_last_seen FROM public.issue_incident_inference WHERE issue_id = %s AND incident_id = %s """
+    query = """SELECT inference ,issue_title, issue_last_seen, scenario_id FROM public.issue_incident_inference WHERE issue_id = %s AND incident_id = %s """
 
     try:
         # Execute the check query with the issue_id as a parameter and rca = True
@@ -317,7 +317,8 @@ def check_if_inference_already_present_reporting_scheduler(issue_id, incident_id
             inference = pickle.loads(result[0])
             issue_title = result[1]
             issue_last_seen = result[2]
-            return inference, issue_title, issue_last_seen
+            scenario_id = result[3]
+            return inference, issue_title, issue_last_seen, scenario_id
         elif result is not None and result[0] is None:
             return None, None
         else:
@@ -372,7 +373,7 @@ def check_if_inference_already_present_for_issue(issue_id):
             conn.close()
 
 
-def insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen, issue_first_seen):
+def insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen, issue_first_seen, scenario_id):
     # Validate that 'answer' is not None
     if inference is None:
         print(
@@ -392,8 +393,8 @@ def insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_tit
 
         # SQL query to update or insert the answer
         upsert_query = """
-            INSERT INTO public.issue_incident_inference (issue_id, incident_id, issue_title, inference, created_at, issue_last_seen, issue_first_seen)
-            VALUES (%s, %s, %s, %s, NOW(), %s, %s)
+            INSERT INTO public.issue_incident_inference (issue_id, incident_id, issue_title, scenario_id, inference, created_at, issue_last_seen, issue_first_seen)
+            VALUES (%s, %s, %s, %s, %s, NOW(), %s, %s)
             ON CONFLICT (issue_id, incident_id)
             DO UPDATE SET inference = EXCLUDED.inference, created_at = EXCLUDED.created_at
             RETURNING inference;
@@ -401,7 +402,7 @@ def insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_tit
 
         # Execute the upsert query with the specified parameters
         cur.execute(upsert_query,
-                    (issue_id, incident_id, issue_title, new_inference, issue_last_seen, issue_first_seen))
+                    (issue_id, incident_id, issue_title, scenario_id, new_inference, issue_last_seen, issue_first_seen))
 
         # Fetch the updated/inserted answer
         updated_inference = cur.fetchone()[0]
@@ -496,7 +497,7 @@ def get_user_conversation_events(issue_id, limit, offset):
         ORDER BY created_at DESC
         LIMIT %s OFFSET %s
         """
-        cur.execute(query, (issue_id, limit, (offset) * limit))
+        cur.execute(query, (issue_id, limit, offset))
 
         # Fetch the rows from the result set
         rows = cur.fetchall()

@@ -21,14 +21,15 @@ class WSPServiceClient:
     def __init__(self):
         self.api_client = APIClient(base_url=wsp_host)
 
-    def publish_inference_to_slack(self, issue_id: str, incident_id: str, inference: str, issue_title: str):
+    def publish_inference_to_slack(self, issue_id: str, incident_id: str, inference: str, issue_title: str, scenario_id: str):
         endpoint = f"request"
         payload = {
             "issueId": issue_id,
             "incidentId": incident_id,
             "issueTitle": issue_title,
             "inference": inference,
-            "clusterId": cluster_id
+            "clusterId": cluster_id,
+            "scenarioId": scenario_id
         }
         headers = {
             'X-PROXY-DESTINATION': zk_slack_host,

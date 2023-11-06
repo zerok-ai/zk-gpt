@@ -20,13 +20,13 @@ def publish_issue_inference_slack_report(issue_incident_dict):
 
     try:
         # fetch inference
-        inference, issue_title, issue_last_seen = postgresClient.check_if_inference_already_present_reporting_scheduler(issue_id, incident_id)
+        inference, issue_title, issue_last_seen, scenario_id = postgresClient.check_if_inference_already_present_reporting_scheduler(issue_id, incident_id)
         if inference is None:
             return
         if issue_last_seen < clear_reporting_timestamp:
             return
 
-        wsp_svc_client.publish_inference_to_slack(issue_id, incident_id,inference, issue_title)
+        wsp_svc_client.publish_inference_to_slack(issue_id, incident_id,inference, issue_title, scenario_id)
         # update the status of the slack reporting
         postgresClient.update_slack_reporting_status(issue_id, incident_id,True)
     except Exception as e:
