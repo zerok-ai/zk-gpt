@@ -41,7 +41,9 @@ if __name__ == '__main__':
     # self.config_data = self._load_config()
     if fetch_secrets_and_load_config():
         # start issue scheduler
+        logger.info(log_tag,"staring issue inference generation scheduler")
         issue_scheduler.start()
+        logger.info(log_tag,"staring reporting generation scheduler")
         slack_reporting_scheduler.start()
         # Start the application only if the config and secrets are fetched successfully
         uvicorn.run(app, host="0.0.0.0", port=80)

@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from typing import Dict
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -9,7 +10,7 @@ from app.internal.inference_adapter import inference_adapter
 from app.utils import zk_logger
 
 axon_svc_client = axon_client.AxonServiceClient()
-inference_adapter = inference_adapter.InferenceAdapter
+inference_adapter_impl = inference_adapter.InferenceAdapter()
 log_tag = "issue_inference_generation_scheduler"
 logger = zk_logger.logger
 
@@ -18,11 +19,10 @@ def generate_inference(issue_incident_dict):
     try:
         issue_id = issue_incident_dict["issue_id"]
         incident_id = issue_incident_dict["incident_id"]
-        issue_data = issue_incident_dict["issue_data"]
+        issue_data: Dict[str, str] = issue_incident_dict["issue_data"]
         logger.info(log_tag, f"Generating Inference for Issue {issue_id} and Incident {incident_id}")
-
         logger.info(log_tag, f"printing issue data for scheduler {issue_data}")
-        inference_adapter.generate_and_store_inference_for_scheduler(issue_id, incident_id, issue_data)
+        inference_adapter_impl.generate_inference_for_scheduler(issue_id=issue_id, incident_id=incident_id, issue_data=issue_data)
     except Exception as e:
         logger.error(log_tag, f"Error generating inference for issue {issue_incident_dict}: {str(e)}")
 
@@ -71,7 +71,6 @@ def issue_inference_scheduler_task():
 
     # check if the issue is inferred and  present in the DB
     issues_already_inferred = postgresClient.get_issues_inferred_already_in_db(issues)
-
     # update last seen for already inferred issues
     issue_last_seen_dict = {}
     issue_last_seen_dict_list = []
@@ -82,7 +81,6 @@ def issue_inference_scheduler_task():
         issue_last_seen_dict[issueId] = timestamp_pg
         issue_last_seen_dict_list.append({"issue_id": issueId, "last_seen": timestamp_pg})
     postgresClient.update_last_seen_for_issue_list(issue_last_seen_dict_list)
-
     new_issues_to_infer = list(set(issues) - set(issues_already_inferred))
     if len(new_issues_to_infer) == 0:
         logger.info(log_tag, "issue scheduler : No new issues found to infer")
