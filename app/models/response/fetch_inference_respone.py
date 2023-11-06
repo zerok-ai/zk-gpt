@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from typing import Optional
 
-from app.models.response.generic_response import GenericResponseInterface
+from pydantic import BaseModel
 
 
 class InferenceSummaryAnomaly(BaseModel):
-    summary: str | None
-    anomalies: str | None
+    summary: Optional[str] = None
+    anomalies: Optional[str] = None
     data: str
 
     def to_dict(self):
