@@ -2,11 +2,13 @@ from fastapi import HTTPException, APIRouter, Query, status
 from fastapi.responses import JSONResponse
 
 from app.models.request.gereric_request import GenericRequest
-from app.services import user_events_service, issue_service
+from app.models.request.user_qna_event_request import UserQnaEventRequest
+from app.services import user_events_service, issue_service, inference_service
 
 router = APIRouter()
 issue_service_impl = issue_service.IssueService()
 user_events_service_impl = user_events_service.UserEventsService()
+inference_service_impl = inference_service.InferenceService()
 
 
 @router.post('/v1/c/gpt/issue/{issue_id}/incident/{incident_id}')
@@ -39,5 +41,20 @@ def get_issue_incident_list_events(issue_id: str,
             "total_count": total_count
         }
     })
+
+@router.post('/v1/c/gpt/issue/event')
+def ingest_and_retrieve_incident_event_response(request: UserQnaEventRequest):
+    if request is None or not request:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
+    issue_id = request.issueId
+    incident_id = request.incidentId
+
+    if request.event is not None:
+        event_request = request.event
+        event_type = event_request.type
+        event_response = inference_service_impl.process_incident_event_and_get_event_response(issue_id, incident_id, event_type, event_request)
+        return event_response
+    else:
+        return JSONResponse(content={"error": "Missing 'event' parameter in the request body."}, status_code=status.HTTP_400_BAD_REQUEST)
 
 

@@ -30,12 +30,13 @@ class InferenceAdapter:
         self.vectorize_inference_data_and_push_to_pinecone(issue_id, incident_id, langchain_inference, custom_data)
 
         issue_title = issue_summary['issue_title']
+        scenario_id = issue_summary['scenario_id']
         issue_last_seen = self.get_time_stamp_from_datatime(issue_summary['last_seen'])
         issue_first_seen = self.get_time_stamp_from_datatime(issue_summary['first_seen'])
 
         # store in DB
         postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
-                                                        issue_first_seen)
+                                                        issue_first_seen, scenario_id)
 
         logger.info(log_tag, f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
         # slack integration
@@ -61,11 +62,13 @@ class InferenceAdapter:
 
         issue_title = issue_summary['issue_title']
 
+        scenario_id = issue_summary['scenario_id']
+
         logger.info(log_tag, f"inference genereted succesfully for {issue_id} and now we are storign in DB")
 
         # store in DB
         postgresClient.insert_or_update_inference_to_db(issue_id, incident_id, inference, issue_title, issue_last_seen,
-                                                        issue_first_seen)
+                                                        issue_first_seen, scenario_id)
 
         logger.info(log_tag, f"stored inference in DB for issue: {issue_id} and incidentId: {incident_id}")
         # slack integration

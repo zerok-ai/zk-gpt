@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS public.issue_incident_inference
     issue_id                VARCHAR(255) NOT NULL,
     incident_id             VARCHAR(255) NOT NULL,
     issue_title             VARCHAR(255),
+    scenario_id             VARCHAR(255),
     inference               BYTEA,
     created_at              TIMESTAMP,
     issue_last_seen         TIMESTAMP,

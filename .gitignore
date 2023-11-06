@@ -2,6 +2,7 @@
 venv
 __pycache__
 config/config.yaml
+app/config/config.yaml
 build
 dist
 zk-gpt.spec

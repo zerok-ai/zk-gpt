@@ -6,6 +6,7 @@ from app.models.event_type import EventType
 from app.internal.inference_adapter import inference_adapter
 from app.internal.langchain_adapter import langchain_adapter
 from app.internal.pinecone_adapter import pinecone_adapter
+from app.models.request.user_qna_event_request import UserQnaEvent
 from app.utils import context_cache
 from app.utils import response_formatter
 
@@ -18,11 +19,11 @@ axon_svc_client = axon_client.AxonServiceClient()
 
 class EventHandlingStrategy(ABC):
     @abstractmethod
-    def handle_event(self, issue_id, incident_id, event_type, event):
+    def handle_event(self, issue_id: str, incident_id: str, event_type: str, event: UserQnaEvent):
         pass
 
 
-def get_issue_context(issue_id, incident_id):
+def get_issue_context(issue_id: str, incident_id: str):
     # check if context is present in memory or not
     cache_key = issue_id + '_' + incident_id
     context = in_memory_context.get_context(cache_key)
@@ -45,11 +46,11 @@ def upsert_issue_context(issue_id, incident_id, new_context):
 
 
 class QNAEventStrategy(EventHandlingStrategy):
-    def handle_event(self, issue_id, incident_id, event_type, event):
+    def handle_event(self, issue_id: str, incident_id: str, event_type: str, event: UserQnaEvent):
         if event_type == EventType.QNA.value:
             # Handle QNA event logic here
             # get context of the issue + final summary + user query fetch
-            event_request = event['request']
+            event_request = event.request
             query = event_request['query']
 
             spans_map = axon_svc_client.get_spans_map(issue_id, incident_id)
@@ -130,12 +131,12 @@ class QNAEventStrategy(EventHandlingStrategy):
 
 
 class UserAdditionEventStrategy(EventHandlingStrategy):
-    def handle_event(self, issue_id, incident_id, event_type, event):
+    def handle_event(self, issue_id: str, incident_id: str, event_type: str, event: UserQnaEvent):
         pass
 
 
 class InferenceEventStrategy(EventHandlingStrategy):
-    def handle_event(self, issue_id, incident_id, event_type, event):
+    def handle_event(self, issue_id: str, incident_id: str, event_type: str, event: UserQnaEvent):
         if event_type == EventType.INFERENCE.value:
             # check if inference already calculated for the issue and incident and send accordingly
             inference, issue_title = postgresClient.check_if_inference_already_present(issue_id, incident_id)
@@ -156,9 +157,9 @@ class InferenceEventStrategy(EventHandlingStrategy):
 
 
 class TraceSwitchEventStrategy(EventHandlingStrategy):
-    def handle_event(self, issue_id, incident_id, event_type, event):
+    def handle_event(self, issue_id: str, incident_id: str, event_type: str, event: UserQnaEvent):
         if event_type == EventType.CONTEXT_SWITCH.value:
-            event_request = event['request']
+            event_request = event.request
             # check if inference already calculated for the issue and incident and send accordingly
             old_incident = event_request['oldIncident']
             new_incident = event_request['newIncident']
