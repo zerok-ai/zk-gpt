@@ -1,11 +1,13 @@
+import argparse
+
 import uvicorn
 from fastapi import FastAPI
 
 from app import config
-from app.utils import zk_logger
 from app.routes import internal_demo_route, inference_route, events_route, deprecated_route
 from app.schedulers.issue_inference_generation_scheduler import issue_scheduler
 from app.schedulers.slack_reporting_scheduler import slack_reporting_scheduler
+from app.utils import zk_logger
 
 log_tag = "main"
 logger = zk_logger.logger
@@ -30,6 +32,13 @@ def fetch_secrets_and_load_config():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Example command-line argument parser")
+    parser.add_argument('-c', '--config', type=str, help="Path to the configuration file")
+    args = parser.parse_args()
+    config_file = args.config
+    print(config_file)
+    # self.config_file = config_file
+    # self.config_data = self._load_config()
     if fetch_secrets_and_load_config():
         # start issue scheduler
         issue_scheduler.start()

@@ -33,6 +33,7 @@ if [ "$arch" = "x86_64" ] || [ "$arch" = "amd64" ]; then
     ./"$exeAMD64" -c "$config"
 elif [ "$arch" = "aarch64" ] || [ "$arch" = "arm64" ]; then
     echo "This is an ARM64 machine."
+    echo "$exeARM64"
     ./"$exeARM64" -c "$config"
 else
     echo "Unsupported Architecture: $arch"
