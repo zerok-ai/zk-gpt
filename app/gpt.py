@@ -1,6 +1,6 @@
 import openai
 
-import config
+from app import config
 from app.utils import zk_logger
 
 openai.api_key = config.configuration.get("openai_key", "")
