@@ -1,16 +1,11 @@
-FROM --platform=linux/arm64/v8 python:3.9
-#RUN apt-get update
-#RUN apt-get install binutils
-#FROM python:3.9-slim
+# First stage: build the application
+FROM python:3.9 as builder
+
 RUN mkdir -p /zk/app
 
 WORKDIR /zk
 
 COPY ./app /zk/app
-
-# zk/app app folder got copied
-
-# zk/dist/
 
 ENV PYTHONPATH=/zk
 
@@ -18,36 +13,26 @@ RUN pip install pyinstaller
 
 RUN pip install -r app/requirements.txt
 
-RUN pyinstaller app/main.py --target-arch arm64 --onefile --name zk-gpt
-
-#CMD ["python", "main.py"]
-
-#COPY /dist/zk-gpt /zk/zk-gpt
+RUN pyinstaller app/main.py --target-arch arm64 --onefile --name zk-gpt-arm64
+RUN pyinstaller app/main.py --target-arch amd64 --onefile --name zk-gpt-amd64
 
 
-#COPY ./app/requirements.txt /zk/
+# Second stage: create the runtime image
+FROM python:3.9-slim
 
-#COPY ./config/config.yaml /zk/app/config/config.yaml
+WORKDIR /zk/zk-gpt
+
+# Copy the built application from the builder stage
+COPY --from=builder /zk/dist /zk/zk-gpt
 
 # base name of the executable
-ENV exeARM64="dist/zk-gpt"
-
-## full path to the all the executables
-#ENV exeGptAMD64="${exeBaseName}-amd64"
-#ENV exeGptARM64="${exeBaseName}-arm64"
-#
-## copy the executables
-#COPY *"bin/$exeAMD64" .
-#COPY *"bin/$exeARM64" .
-
+ENV exeARM64="zk-gpt-arm64"
+ENV exeAMD64="zk-gpt-amd64"
 
 # copy the start script
 COPY app-start.sh .
 RUN chmod +x app-start.sh
-#
-#COPY /dist/zk-gpt /zk
-#
+
 ## call the start script
-CMD ["sh","-c","./app-start.sh --arm64 ${exeARM64} -c config/config.yaml"]
-#
-#
+CMD ["sh","-c","./app-start.sh --amd64 ${exeAMD64} --arm64 ${exeARM64} -c config/config.yaml"]
+
