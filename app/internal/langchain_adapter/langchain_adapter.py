@@ -32,7 +32,8 @@ class LangchainAdapter:
                                             output_variables=["trace_summary", "exception_summary", "req_res_summary",
                                                               "final_summary"])
 
-            final_issue_inference = overall_chain(custom_data, callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
+            # final_issue_inference = overall_chain(custom_data, callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
+            final_issue_inference = overall_chain(custom_data)
 
             print("final_issue_inference :\n")
             print(final_issue_inference)

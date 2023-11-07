@@ -65,3 +65,10 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
+
+langsmith:
+  tracing: "true"
+  project: "zk-gpt"
+  endpoint: "https://api.smith.langchain.com"
+  apikey: "ls__2ba78d8aeab146a3939dbe190c1e7bfe"
+  openaiApiKey: "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"
