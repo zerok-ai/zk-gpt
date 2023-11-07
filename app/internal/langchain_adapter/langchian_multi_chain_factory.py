@@ -1,5 +1,5 @@
 from langchain.chains import LLMChain
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 
 from app import config
 from app.utils import zk_logger
@@ -12,10 +12,10 @@ logger = zk_logger.logger
 
 class LangChainMultichainFactory:
     def __init__(self):
-        self.llm = OpenAI(model_name="gpt-3.5-turbo-16k", openai_api_key=openai_api_key, temperature=0.2)
+        self.llm = ChatOpenAI(model_name="gpt-3.5-turbo-16k", openai_api_key=openai_api_key, temperature=0.1)
 
     def generate_langchain_chain(self, prompt, output_key):
-        # include type in prompt and write custom strategy to choose different llm for each promt type
+        # include type in prompt and write custom strategy to choose different llm for each prompt type
         return LLMChain(llm=self.llm, prompt=prompt, output_key=output_key)
 
     def get_sequential_chains(self, prompts, output_keys):
