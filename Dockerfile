@@ -13,8 +13,8 @@ RUN pip install pyinstaller
 
 RUN pip install -r app/requirements.txt
 
-RUN pyinstaller app/main.py --target-arch arm64 --onefile --name zk-gpt-arm64 --collect-all=langchain --collect-all=pinecone --collect-all=langsmith
-RUN pyinstaller app/main.py --target-arch amd64 --onefile --name zk-gpt-amd64 --collect-all=langchain --collect-all=pinecone --collect-all=langsmith
+RUN pyinstaller app/main.py --target-arch arm64 --onefile --copy-metadata urllib3 --name zk-gpt-arm64 --collect-all=langchain --collect-all=pinecone --collect-all=langsmith
+RUN pyinstaller app/main.py --target-arch amd64 --onefile --copy-metadata urllib3 --name zk-gpt-amd64 --collect-all=langchain --collect-all=pinecone --collect-all=langsmith
 
 
 # Second stage: create the runtime image
