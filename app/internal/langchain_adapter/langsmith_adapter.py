@@ -24,5 +24,5 @@ class LangsmithAdapter:
     @staticmethod
     def get_langsmith_tag_list():
         # TODO : get tag list form configmap
-        tag_list = ["zerok", "glance"]
+        tag_list = ["zerok"]
         return tag_list
