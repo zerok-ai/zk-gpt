@@ -1,6 +1,8 @@
 from langchain.chains import SequentialChain
 from langchain.tools import tool
 
+from requests.exceptions import ConnectionError
+
 from app.internal.langchain_adapter import langchian_multi_chain_factory
 from app.internal.langchain_adapter import langsmith_adapter
 from app.internal.langchain_adapter import prompt_factory
@@ -39,6 +41,12 @@ class LangchainAdapter:
             print(final_issue_inference)
 
             return final_issue_inference
+        except ConnectionError as e:
+            print(f"langchain error: {str(e)}\n")
+            print(f"langchain error req: {str(e.request)}\n")
+            print(f"langchain error res: {str(e.response)}\n")
+            logger.error(log_tag, f"An error occurred: {e}")
+            return ""
         except Exception as e:
             logger.error(log_tag, f"An error occurred: {e}")
             return ""
