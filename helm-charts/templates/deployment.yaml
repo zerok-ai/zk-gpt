@@ -25,16 +25,6 @@ spec:
               do echo "waiting for ${URL}"; sleep 2; done;'
           name: operator-wait
           env:
-            - name: LANGCHAIN_TRACING_V2
-              value: "{{ .Values.langsmith.tracing }}"
-            - name: LANGCHAIN_PROJECT
-              value: "{{ .Values.langsmith.project }}"
-            - name: LANGCHAIN_ENDPOINT
-              value: "{{ .Values.langsmith.endpoint }}"
-            - name: LANGCHAIN_API_KEY
-              value: "{{ .Values.langsmith.apikey }}"
-            - name: OPENAI_API_KEY
-              value: "{{ .Values.langsmith.openaiApiKey }}"
             - name: SERVICE_NAME
               value: zk-operator.zk-client.svc.cluster.local
             - name: SERVICE_PORT
@@ -53,6 +43,16 @@ spec:
                 - ALL
       containers:
       - env:
+        - name: LANGCHAIN_TRACING_V2
+          value: "{{ .Values.langsmith.tracing }}"
+        - name: LANGCHAIN_PROJECT
+          value: "{{ .Values.langsmith.project }}"
+        - name: LANGCHAIN_ENDPOINT
+          value: "{{ .Values.langsmith.endpoint }}"
+        - name: LANGCHAIN_API_KEY
+          value: "{{ .Values.langsmith.apikey }}"
+        - name: OPENAI_API_KEY
+          value: "{{ .Values.langsmith.openaiApiKey }}"
         - name: "postgres_password" # Setting Database password from Secret
           valueFrom:
             secretKeyRef:
