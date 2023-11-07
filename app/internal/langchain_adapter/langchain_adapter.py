@@ -34,6 +34,9 @@ class LangchainAdapter:
 
             final_issue_inference = overall_chain(custom_data, callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
 
+            print("final_issue_inference :\n")
+            print(final_issue_inference)
+
             return final_issue_inference
         except Exception as e:
             logger.error(log_tag, f"An error occurred: {e}")
