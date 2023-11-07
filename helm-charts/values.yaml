@@ -55,7 +55,7 @@ replicaCount: 1
 image:
   repo: "zk-gpt"
   tag: "latest"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   migrationRestartPolicy: Never
   migrationRepo: "zk-gpt-migration"
   migrationTag: "latest"
