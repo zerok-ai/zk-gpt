@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.schedulers.issue_inference_generation_scheduler import issue_inference_scheduler_task
 from app.schedulers.slack_reporting_scheduler import slack_reporting_scheduler_task
+from app.internal.langchain_adapter.langsmith_adapter import LangsmithAdapter
 from app.services import internal_demo_service
 
 router = APIRouter()
@@ -26,6 +27,17 @@ def trigger_issue_scheduler_task_manually():
         # Manually trigger the task here
         issue_inference_scheduler_task()
         return {"message": "Issue scheduler Task triggered successfully"}, 200
+    except Exception as e:
+        return HTTPException(detail=str(e), status_code=500)
+
+
+@router.get('/v1/c/gpt/updateLangsmithPush')
+def update_langsmith_push_flag(flag: bool):
+    try:
+        old_flag = LangsmithAdapter.langsmith_push_enabled
+        LangsmithAdapter.update_langsmith_push_enabled(flag)
+        new_flag = LangsmithAdapter.langsmith_push_enabled
+        return {"langsmith_old_flag": old_flag,"langsmith_new_flag": new_flag }, 200
     except Exception as e:
         return HTTPException(detail=str(e), status_code=500)
 

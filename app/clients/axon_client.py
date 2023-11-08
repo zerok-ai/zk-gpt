@@ -1,5 +1,5 @@
 import requests
-from fastapi import status
+from fastapi import status, HTTPException
 
 from app import config
 from app.clients.api_client import APIClient
@@ -36,9 +36,13 @@ class AxonServiceClient:
             data = response
             span_rawdata = data['payload']['span_raw_data_details'].get(span_id)
             return span_rawdata
+        except HTTPException as e:
+            logger.info(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
+            return None
         except requests.exceptions.RequestException as e:
-            logger.error(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
-            raise ClientInteractionException("error occurred while fetch span raw data", status.HTTP_500_INTERNAL_SERVER_ERROR, f"Error occurred during API call: {e}")
+            logger.info(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
+            return None
+            # raise ClientInteractionException("error occurred while fetch span raw data", status.HTTP_500_INTERNAL_SERVER_ERROR, f"Error occurred during API call: {e}")
 
     def get_issue_incidents(self, issue_id: str):
         endpoint = f"v1/c/axon/issue/{issue_id}/incident"

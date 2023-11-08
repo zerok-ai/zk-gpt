@@ -98,4 +98,4 @@ def issue_inference_scheduler_task():
 
 
 issue_scheduler = BackgroundScheduler()
-issue_scheduler.add_job(issue_inference_scheduler_task, 'interval', minutes=1)
+issue_scheduler.add_job(issue_inference_scheduler_task, 'interval', minutes=1, max_instances=3)

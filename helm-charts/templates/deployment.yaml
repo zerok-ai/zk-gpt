@@ -43,6 +43,16 @@ spec:
                 - ALL
       containers:
       - env:
+#        - name: LANGCHAIN_TRACING_V2
+#          value: "{{ .Values.langsmith.tracing }}"
+#        - name: LANGCHAIN_PROJECT
+#          value: "{{ .Values.langsmith.project }}"
+#        - name: LANGCHAIN_ENDPOINT
+#          value: "{{ .Values.langsmith.endpoint }}"
+#        - name: LANGCHAIN_API_KEY
+#          value: "{{ .Values.langsmith.apikey }}"
+#        - name: OPENAI_API_KEY
+#          value: "{{ .Values.langsmith.openaiApiKey }}"
         - name: "postgres_password" # Setting Database password from Secret
           valueFrom:
             secretKeyRef:
@@ -61,7 +71,7 @@ spec:
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
         image: "{{ .Values.global.dockerBase }}/{{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: zk-gpt
         ports:
         - containerPort: 80
