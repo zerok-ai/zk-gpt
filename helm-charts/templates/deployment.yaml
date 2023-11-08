@@ -43,16 +43,16 @@ spec:
                 - ALL
       containers:
       - env:
-        - name: LANGCHAIN_TRACING_V2
-          value: "{{ .Values.langsmith.tracing }}"
-        - name: LANGCHAIN_PROJECT
-          value: "{{ .Values.langsmith.project }}"
-        - name: LANGCHAIN_ENDPOINT
-          value: "{{ .Values.langsmith.endpoint }}"
-        - name: LANGCHAIN_API_KEY
-          value: "{{ .Values.langsmith.apikey }}"
-        - name: OPENAI_API_KEY
-          value: "{{ .Values.langsmith.openaiApiKey }}"
+#        - name: LANGCHAIN_TRACING_V2
+#          value: "{{ .Values.langsmith.tracing }}"
+#        - name: LANGCHAIN_PROJECT
+#          value: "{{ .Values.langsmith.project }}"
+#        - name: LANGCHAIN_ENDPOINT
+#          value: "{{ .Values.langsmith.endpoint }}"
+#        - name: LANGCHAIN_API_KEY
+#          value: "{{ .Values.langsmith.apikey }}"
+#        - name: OPENAI_API_KEY
+#          value: "{{ .Values.langsmith.openaiApiKey }}"
         - name: "postgres_password" # Setting Database password from Secret
           valueFrom:
             secretKeyRef:

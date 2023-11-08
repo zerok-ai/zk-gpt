@@ -34,17 +34,13 @@ class LangchainAdapter:
                                             output_variables=["trace_summary", "exception_summary", "req_res_summary",
                                                               "final_summary"])
 
-            # final_issue_inference = overall_chain(custom_data, callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
-            final_issue_inference = overall_chain(custom_data)
-
-            print("final_issue_inference :\n")
+            final_issue_inference = overall_chain(custom_data,
+                                                  callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
+            # final_issue_inference = overall_chain(custom_data)
             print(final_issue_inference)
 
             return final_issue_inference
         except ConnectionError as e:
-            print(f"langchain error: {str(e)}\n")
-            print(f"langchain error req: {str(e.request)}\n")
-            print(f"langchain error res: {str(e.response)}\n")
             logger.error(log_tag, f"An error occurred: {e}")
             return ""
         except Exception as e:

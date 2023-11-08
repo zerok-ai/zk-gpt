@@ -37,11 +37,10 @@ class AxonServiceClient:
             span_rawdata = data['payload']['span_raw_data_details'].get(span_id)
             return span_rawdata
         except HTTPException as e:
-            logger.error(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
-            print(f"{e}")
+            logger.info(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
             return None
         except requests.exceptions.RequestException as e:
-            logger.error(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
+            logger.info(log_tag, f"Error occurred while fetch span raw data ERROR: {e}")
             return None
             # raise ClientInteractionException("error occurred while fetch span raw data", status.HTTP_500_INTERNAL_SERVER_ERROR, f"Error occurred during API call: {e}")
 
