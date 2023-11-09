@@ -1,9 +1,9 @@
 from pydantic import BaseModel
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class UserQnaEvent(BaseModel):
-    request:  Dict[str, Any]
+    request: Optional[Dict[str, Any]] = None
     type: str
 
     def to_dict(self):
