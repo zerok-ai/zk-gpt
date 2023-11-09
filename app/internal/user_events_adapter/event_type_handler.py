@@ -90,13 +90,13 @@ class QNAEventStrategy(EventHandlingStrategy):
             issue_summary, incident_id_db = postgresClient.check_if_inference_already_present_for_issue(issue_id)
 
             # fetch pine cone documents
-            pinecone_docs = pinecone_interaction_provider.get_similar_docs_for_given_query(query, issue_id)
+            # pinecone_docs = pinecone_interaction_provider.get_similar_docs_for_given_query(query, issue_id)
 
             # fetch the inference
             # create input variable for langchain
             custom_data = {
                 "query": query,
-                "pinecone_similarity_docs": pinecone_docs,
+                # "pinecone_similarity_docs": pinecone_docs,
                 "issue_summary": issue_summary,
                 "user_qna_context_data": issue_context,
                 "trace_data": str(filtered_spans_map),
