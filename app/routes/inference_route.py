@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 from fastapi import APIRouter, Query, Request, HTTPException, status
 from fastapi.responses import JSONResponse
 
@@ -32,8 +34,8 @@ def get_all_issue_inferences(issue_id: str,
 
 
 @router.post('/v1/c/gpt/incident/inference')
-def get_issue_incident_inference(data: FetchInferenceRequest):
-    request_data = data.data
+def get_issue_incident_inference(data: Dict[str, Any]):
+    request_data = data
     if data is None or not data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
     issue_id = request_data.get('issueId')
