@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 
 from pydantic import BaseModel
@@ -9,7 +10,12 @@ class InferenceSummaryAnomaly(BaseModel):
     data: str
 
     def to_dict(self):
-        return self.model_dump()
+        data_dict = {
+            "summary": self.summary,
+            "anomalies": self.anomalies,
+            "data": json.dumps(self.data)  # Convert str to JSON string
+        }
+        return data_dict
 
 
 class FetchInferenceResponse(BaseModel):
