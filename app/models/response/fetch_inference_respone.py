@@ -13,7 +13,7 @@ class InferenceSummaryAnomaly(BaseModel):
         data_dict = {
             "summary": self.summary,
             "anomalies": self.anomalies,
-            "data": json.dumps(self.data)  # Convert str to JSON string
+            "data": self.data  # Convert str to JSON string
         }
         return data_dict
 

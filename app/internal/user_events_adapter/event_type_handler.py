@@ -147,7 +147,7 @@ class InferenceEventStrategy(EventHandlingStrategy):
             # store the event conversation in DB
             inference_request = "Get likely cause for the issue : {}".format(issue_id)
             likely_cause = response_formatter.get_formatted_inference_response(issue_id, incident_id, inference)
-            event_response = dict(type=EventType.INFERENCE.value, request=inference_request, response=likely_cause)
+            event_response = dict(type=EventType.INFERENCE.value, request=inference_request, response=likely_cause.to_dict())
             postgresClient.insert_user_conversation_event(issue_id, incident_id, event_type, inference_request,
                                                           event_response)
 

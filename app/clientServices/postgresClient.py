@@ -1,3 +1,4 @@
+import json
 import pickle
 
 import psycopg2
@@ -510,7 +511,7 @@ def get_user_conversation_events(issue_id, limit, offset):
             results.append({
                 'issueId': row[1],
                 'incidentId': row[2],
-                'event': str(event),
+                'event': event,
                 'created_at': str(row[6])
             })
 
