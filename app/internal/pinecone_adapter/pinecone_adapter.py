@@ -8,6 +8,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone
+from tiktoken_ext import openai_public
+import tiktoken_ext
 
 from app import config
 from app.clients import axon_client
