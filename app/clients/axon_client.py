@@ -98,3 +98,16 @@ class AxonServiceClient:
             raise ClientInteractionException("Error occurred while fetching issue summary",
                                              status.HTTP_500_INTERNAL_SERVER_ERROR,
                                              str(e))
+
+    def get_pods_info(self, incident_id: str):
+        endpoint = f"v1/c/axon/prom/pods-info/trace/{incident_id}"
+        try:
+            response = self.api_client.get(endpoint=endpoint)
+            data = response
+            pods_info = data['payload']['pods_info']
+            return pods_info
+        except requests.exceptions.RequestException as e:
+            logger.error(log_tag, f"Error occurred while fetching prometheus data: {e}")
+            raise ClientInteractionException("Error occurred while fetching prometheus data",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             str(e))

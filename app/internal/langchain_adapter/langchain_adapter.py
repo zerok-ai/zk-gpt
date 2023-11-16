@@ -70,3 +70,19 @@ class LangchainAdapter:
         except Exception as e:
             logger.error(log_tag, f"An error occurred: {e}")
             return ""
+
+    def get_promql_queries_langchain(self, custom_data):
+        try:
+            prompts, output_keys = self.prompt_factory_instance.generate_prompts_for_promql_queries_sequential_chain()
+
+            promql_queries_sequential_list_chains = self.langchain_multi_chain_fact.get_sequential_chains(prompts,
+                                                                                                          output_keys)
+
+            overall_chain = SequentialChain(chains=promql_queries_sequential_list_chains, verbose=True,
+                                            input_variables=["issue_title", "issue_inference", "data"],
+                                            output_variables=["promql_queries"])
+            promql_queries = overall_chain(custom_data)
+            return promql_queries
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return ""
