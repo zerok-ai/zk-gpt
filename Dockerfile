@@ -30,7 +30,7 @@ COPY --from=builder /zk/app/requirements.txt /zk
 ENV exeARM64="zk-gpt-arm64"
 ENV exeAMD64="zk-gpt-amd64"
 
-RUN pip install -r requirements.txt
+#RUN pip install -r requirements.txt
 # copy the start script
 COPY app-start.sh .
 
