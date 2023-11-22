@@ -37,7 +37,7 @@ class LangsmithAdapter:
     @staticmethod
     def get_langsmith_tag_list():
         # TODO : get tag list form configmap
-        tag_list = ["zerok"]
+        tag_list = ["zerok", "prometheus", "promql", "alert"]
         return tag_list
 
     @classmethod

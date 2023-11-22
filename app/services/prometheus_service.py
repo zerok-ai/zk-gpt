@@ -54,3 +54,9 @@ class PrometheusService:
         print("prometheus_queries: \n" + str(prometheus_queries))
 
         return prometheus_queries
+
+    def get_prometheus_queries_from_alert_definition(self, alert_definition):
+
+        prometheus_queries = prom_adapter_provider.generate_prometheus_queries_from_alert_defination(alert_definition)
+
+        return prometheus_queries

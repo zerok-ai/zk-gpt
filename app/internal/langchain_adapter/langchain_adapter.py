@@ -64,7 +64,8 @@ class LangchainAdapter:
                                                              "request_response_payload"],
                                             output_variables=["user_query_response"])
 
-            user_query_final_inference = overall_chain(custom_data)
+            user_query_final_inference = overall_chain(custom_data,
+                                                       callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
 
             return user_query_final_inference
         except Exception as e:
@@ -81,8 +82,26 @@ class LangchainAdapter:
             overall_chain = SequentialChain(chains=promql_queries_sequential_list_chains, verbose=True,
                                             input_variables=["issue_title", "issue_inference", "data"],
                                             output_variables=["promql_queries"])
-            promql_queries = overall_chain(custom_data)
+            promql_queries = overall_chain(custom_data,
+                                           callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
             return promql_queries
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"An error occurred while getting langchain prometheus query inference: {e}")
+            return ""
+
+    def get_promql_queries_from_prometheus_alert(self, custom_data):
+        try:
+            prompts, output_keys = self.prompt_factory_instance.prompt_template_for_promql_queries_sequential_chain()
+
+            promql_queries_sequential_list_chains = self.langchain_multi_chain_fact.get_sequential_chains(prompts,
+                                                                                                          output_keys)
+
+            overall_chain = SequentialChain(chains=promql_queries_sequential_list_chains, verbose=True,
+                                            input_variables=["alert_definition"],
+                                            output_variables=["promql_queries"])
+            promql_queries = overall_chain(custom_data,
+                                           callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
+            return promql_queries
+        except Exception as e:
+            print(f"An error occurred while getting langchain prometheus query inference: {e}")
             return ""

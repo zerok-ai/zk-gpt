@@ -22,11 +22,13 @@ class PrometheusAdapter:
         llm_promql_queries_response = lang_chain_inference_provider.get_promql_queries_langchain(custom_data)
         response = llm_promql_queries_response['promql_queries']
         print("llm promQL response :" + response)
+        return response
 
-        # Parse the JSON string into a Python list
-        python_list = json.loads(response)
-        new_list = [s.replace('\\"', '"') for s in python_list]
-
-        # Now, python_list contains the list of strings
-        print("llm promQL response :" + str(new_list))
-        return new_list
+    def generate_prometheus_queries_from_alert_defination(self, alert_definition):
+        # create input variable for langchain
+        custom_data = {"alert_definition": str(alert_definition)}
+        llm_promql_queries_response = lang_chain_inference_provider.get_promql_queries_from_prometheus_alert(
+            custom_data)
+        response = llm_promql_queries_response['promql_queries']
+        print("llm promQL response :" + response)
+        return response

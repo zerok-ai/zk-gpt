@@ -65,3 +65,12 @@ def get_issue_prometheus_report(data: Dict[str, Any]):
     return JSONResponse(
         content={"payload": {"issueId": issue_id, "incidentId": incident_id, "PrometheusReport": issue_prometheus_report}}, status_code=200)
 
+
+@router.post('/v1/c/gpt/generatePrometheusQueriesFromAlert')
+def get_issue_prometheus_queries_from_definition(data: Dict[str, Any]):
+    request_data = data
+    if data is None or not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No data provided")
+    issue_prometheus_queries = prometheus_service.get_prometheus_queries_from_alert_definition(request_data)
+    return JSONResponse(
+        content={"payload": {"PrometheusReport": issue_prometheus_queries}}, status_code=200)
