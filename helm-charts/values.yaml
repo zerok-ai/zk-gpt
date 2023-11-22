@@ -1,6 +1,8 @@
 global:
   dockerBase: "us-west1-docker.pkg.dev/zerok-dev/zk-client"
 
+fullnameOverride: "zk-gpt"
+
 kubernetesClusterDomain: cluster.local
 zkGpt:
   ports:
