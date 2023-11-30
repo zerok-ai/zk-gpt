@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 
 class ZkLogger:
@@ -30,6 +31,7 @@ class ZkLogger:
         self._log(logging.INFO, tag, message, *args)
 
     def warn(self, tag, message, *args):
+        warnings.warn(message)
         self._log(logging.WARN, tag, message, *args)
 
     def error(self, tag, message, *args):

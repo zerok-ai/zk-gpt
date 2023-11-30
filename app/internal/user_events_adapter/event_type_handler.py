@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from app.clientServices import postgresClient
 from app.clients import axon_client
-from app.models.event_type import EventType
+from app.models.enums.event_type import EventType
 from app.internal.inference_adapter import inference_adapter
 from app.internal.langchain_adapter import langchain_adapter
 from app.internal.pinecone_adapter import pinecone_adapter

@@ -13,9 +13,9 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
-    def post(self, endpoint: str, data: Dict, headers: Optional[Dict] = None):
+    def post(self, endpoint: str, data: Optional[Dict] = None, json=None, headers: Optional[Dict] = None):
         url = f"{self.base_url}/{endpoint}"
-        response = requests.post(url, json=data, headers=headers)
+        response = requests.post(url=url, data=data, json=json, headers=headers)
         response.raise_for_status()
         return response.json()
 

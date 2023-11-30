@@ -34,6 +34,7 @@ class LangchainAdapter:
                                             output_variables=["trace_summary", "exception_summary", "req_res_summary",
                                                               "final_summary"])
 
+            # TODO : add this param in chain calls: return_only_outputs
             final_issue_inference = overall_chain(custom_data,
                                                   callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
             # final_issue_inference = overall_chain(custom_data)
@@ -102,6 +103,23 @@ class LangchainAdapter:
             promql_queries = overall_chain(custom_data,
                                            callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
             return promql_queries
+        except Exception as e:
+            print(f"An error occurred while getting langchain prometheus query inference: {e}")
+            return ""
+
+    def get_prometheus_data_summary_from_metric_data(self, custom_data):
+        try:
+            prompts, output_keys = self.prompt_factory_instance.prompt_template_for_prom_summary_from_metric_data()
+
+            promql_queries_sequential_list_chains = self.langchain_multi_chain_fact.get_sequential_chains(prompts,
+                                                                                                          output_keys)
+
+            overall_chain = SequentialChain(chains=promql_queries_sequential_list_chains, verbose=True,
+                                            input_variables=["title", "query", "query_metric_data"],
+                                            output_variables=["prom_summary"])
+            prom_summary = overall_chain(custom_data,
+                                         callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
+            return prom_summary
         except Exception as e:
             print(f"An error occurred while getting langchain prometheus query inference: {e}")
             return ""

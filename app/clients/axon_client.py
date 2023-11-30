@@ -1,9 +1,12 @@
+from typing import Dict
+
 import requests
 from fastapi import status, HTTPException
 
 from app import config
 from app.clients.api_client import APIClient
 from app.exceptions.exception import ClientInteractionException
+from app.models.request.prom_custom_metric_data_request import PromCustomMetricDataRequest
 from app.utils import zk_logger
 
 axon_host = config.configuration.get("axon_host", "localhost:8080")
@@ -19,7 +22,7 @@ class AxonServiceClient:
         endpoint = f"v1/c/axon/issue"
         params = {"limit": 50, "offset": 0, "st": "-1500m"}
         try:
-            response = self.api_client.get(endpoint=endpoint,params=params)
+            response = self.api_client.get(endpoint=endpoint, params=params)
             data = response
             issues_data = data['payload']['issues']
             return issues_data
@@ -109,5 +112,19 @@ class AxonServiceClient:
         except requests.exceptions.RequestException as e:
             logger.error(log_tag, f"Error occurred while fetching prometheus data: {e}")
             raise ClientInteractionException("Error occurred while fetching prometheus data",
+                                             status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                             str(e))
+
+    def get_prometheus_metric_data(self, prom_request_data: PromCustomMetricDataRequest):
+        prom_id: str = "af3c874e-3932-4c61-823f-d470d7e8af54"  # fetch prom_id from redis TODO : fetch prometheus id from redis client
+        endpoint = f"v1/c/axon/prom/{prom_id}/query"
+        try:
+            response = self.api_client.post(endpoint=endpoint, json=prom_request_data.to_dict())
+            data = response
+            prom_metric_data = data['payload']
+            return prom_metric_data
+        except requests.exceptions.RequestException as e:
+            logger.error(log_tag, f"Error occurred while fetching prometheus custom metric data: {e}")
+            raise ClientInteractionException("Error occurred while fetching prometheus custom metric data",
                                              status.HTTP_500_INTERNAL_SERVER_ERROR,
                                              str(e))

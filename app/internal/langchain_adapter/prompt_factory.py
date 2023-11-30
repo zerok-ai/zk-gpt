@@ -1,4 +1,7 @@
+from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
+
+from app.models.llm_output_parser import PrometheusLLMOutputParser, PrometheusDataSummary
 
 
 class PromptFactory:
@@ -53,7 +56,14 @@ class PromptFactory:
     promql_query_generation_from_definition = """An alert has been triggered in my service with alert definition : \
     {alert_definition}. To investigate the issue thoroughly, I need assistance in generating specific 10 PromQL \
     queries on kubernetes metrics server.These queries will enable me to analyze the system based on the provided \
-    alert."""
+    alert. Generate response with formatted instruction as {format_instructions}. do not add any \
+    other elements to the response."""
+
+    prompt_for_prom_metric_data_summary = """When performing following query on prometheus: {query} with title \
+    description : {title} Received following time series data: {query_metric_data}.Summarise \
+    anomalies or issues present in the provided data without leaving any key data points \
+    .Generate response with formatted instruction as {format_instructions}. do not add any other \
+    elements to the response."""
 
     pod_k8s_events = """<explain about before summary>
     {input} <brief about the current data> {custom_data}"""
@@ -145,6 +155,26 @@ class PromptFactory:
         }
     ]
 
+    prompt_template_for_prom_data_summary = [
+        {
+            'name': 'prompt_template_for_prom_data_summary',
+            'description': 'Template used to summarise prometheus queries metric data',
+            'prompt_template': prompt_for_prom_metric_data_summary,
+            "input_variables": ["query", "title", "query_metric_data"],
+            "output_variables": "prom_summary"
+        }
+    ]
+
+    # langchain_agent_prompting = [
+    #     {
+    #         'name': 'prompt_template_for_langchain_agents',
+    #         'description': 'Template used to create agents and use different tools for a given langchain agent',
+    #         'prompt_template': prompt_for_prom_metric_data_summary,
+    #         "input_variables": ["alert_definition"],
+    #         "output_variables": "promql_queries"
+    #     }
+    # ]
+
     def get_all_prompts(self):
         return self.prompt_infos
 
@@ -156,6 +186,9 @@ class PromptFactory:
 
     def get_prompt_template_for_promql_queries(self):
         return self.prompt_template_for_promql_queries
+
+    def get_prom_template_for_summary_from_metric_data(self):
+        return self.prompt_template_for_prom_data_summary
 
     def generate_prompts_for_sequential_chain(self):
         prompts = []
@@ -196,11 +229,29 @@ class PromptFactory:
     def prompt_template_for_promql_queries_sequential_chain(self):
         prompts = []
         output_keys = []
-
+        parser = PydanticOutputParser(pydantic_object=PrometheusLLMOutputParser)
         prompt_templates = self.get_prompt_template_for_promql_queries()
         for prompt_tem in prompt_templates:
             prompt_template = PromptTemplate(input_variables=prompt_tem['input_variables'],
-                                             template=prompt_tem['prompt_template'])
+                                             template=prompt_tem['prompt_template'],
+                                             partial_variables={
+                                                 "format_instructions": parser.get_format_instructions()},
+                                             )
+            prompts.append(prompt_template)
+            output_keys.append(prompt_tem['output_variables'])
+        return prompts, output_keys
+
+    def prompt_template_for_prom_summary_from_metric_data(self):
+        prompts = []
+        output_keys = []
+        parser = PydanticOutputParser(pydantic_object=PrometheusDataSummary)
+        prompt_templates = self.get_prom_template_for_summary_from_metric_data()
+        for prompt_tem in prompt_templates:
+            prompt_template = PromptTemplate(input_variables=prompt_tem['input_variables'],
+                                             template=prompt_tem['prompt_template'],
+                                             partial_variables={
+                                                 "format_instructions": parser.get_format_instructions()},
+                                             )
             prompts.append(prompt_template)
             output_keys.append(prompt_tem['output_variables'])
         return prompts, output_keys

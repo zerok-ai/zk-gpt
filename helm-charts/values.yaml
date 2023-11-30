@@ -40,6 +40,14 @@ redis:
   host: "redis-master.zk-client.svc.cluster.local"
   port: "6379"
   password: ""
+  dbs:
+    filtered_traces: 1
+    scenarios: 2
+    traces: 3
+    executor_attr: 4
+    pod_details: 7
+    error_details: 8
+    prom_integration: 9
 
 pinecone:
   environment: ""

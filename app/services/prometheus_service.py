@@ -1,3 +1,5 @@
+from langchain.output_parsers import EnumOutputParser
+
 from app import config
 from app import gpt
 from app.clientServices import postgresClient
@@ -22,6 +24,7 @@ inference_service_impl = inference_service.InferenceService()
 inference_adapter_impl = inference_adapter.InferenceAdapter()
 log_tag = "issue_service"
 logger = zk_logger.logger
+
 
 
 class PrometheusService:
@@ -57,6 +60,6 @@ class PrometheusService:
 
     def get_prometheus_queries_from_alert_definition(self, alert_definition):
 
-        prometheus_queries = prom_adapter_provider.generate_prometheus_queries_from_alert_defination(alert_definition)
+        prometheus_queries = prom_adapter_provider.generate_prometheus_queries_from_alert_definition(alert_definition)
 
         return prometheus_queries
