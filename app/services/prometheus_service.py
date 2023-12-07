@@ -26,7 +26,6 @@ log_tag = "issue_service"
 logger = zk_logger.logger
 
 
-
 class PrometheusService:
 
     def get_prometheus_report(self, issue_id, incident_id):
@@ -44,10 +43,11 @@ class PrometheusService:
             issue_summary = axon_svc_client.get_issue_summary(issue_id)
             issue_title = str(issue_summary["issue_title"])
 
-        # create input variable for langchain
+        # create input variable for lang chain
         custom_data = {"issue_title": str(issue_title), "issue_inference": str(inference),
                        "data": str(pods_info)}
-        # "issue_prompt": "You are an on-call engineer help in constructing promQL queries for relevant metrics that you as an on-call engineer would look at to root-cause the issue"
+        # "issue_prompt": "You are an on-call engineer help in constructing promQL queries for
+        # relevant metrics that you as an on-call engineer would look at to root-cause the issue"
 
         print("custom_data" + str(custom_data))
         # generate prometheus queries
@@ -59,7 +59,6 @@ class PrometheusService:
         return prometheus_queries
 
     def get_prometheus_queries_from_alert_definition(self, alert_definition):
-
         prometheus_queries = prom_adapter_provider.generate_prometheus_queries_from_alert_definition(alert_definition)
-
+        # TODO :: promQL store in DB using sqlalchemy
         return prometheus_queries

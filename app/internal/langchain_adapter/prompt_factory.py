@@ -1,7 +1,7 @@
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
 
-from app.models.llm_output_parser import PrometheusLLMOutputParser, PrometheusDataSummary
+from app.models.prometheus_model import PrometheusLLMOutputQueries, PrometheusDataSummarySeverity
 
 
 class PromptFactory:
@@ -60,10 +60,10 @@ class PromptFactory:
     other elements to the response."""
 
     prompt_for_prom_metric_data_summary = """When performing following query on prometheus: {query} with title \
-    description : {title} Received following time series data: {query_metric_data}.Summarise \
-    anomalies or issues present in the provided data without leaving any key data points \
-    .Generate response with formatted instruction as {format_instructions}. do not add any other \
-    elements to the response."""
+    description : {title} Received following time series data: {metric_data} and time series data might be \
+    empty also.Summarise anomalies or issues present in the provided data without leaving any key data points \
+    .Generate response with formatted instruction as {format_instructions} and if the output response format is not \
+    valid recompute the output. do not add any other elements to the  response."""
 
     pod_k8s_events = """<explain about before summary>
     {input} <brief about the current data> {custom_data}"""
@@ -160,7 +160,7 @@ class PromptFactory:
             'name': 'prompt_template_for_prom_data_summary',
             'description': 'Template used to summarise prometheus queries metric data',
             'prompt_template': prompt_for_prom_metric_data_summary,
-            "input_variables": ["query", "title", "query_metric_data"],
+            "input_variables": ["query", "title", "metric_data"],
             "output_variables": "prom_summary"
         }
     ]
@@ -229,7 +229,7 @@ class PromptFactory:
     def prompt_template_for_promql_queries_sequential_chain(self):
         prompts = []
         output_keys = []
-        parser = PydanticOutputParser(pydantic_object=PrometheusLLMOutputParser)
+        parser = PydanticOutputParser(pydantic_object=PrometheusLLMOutputQueries)
         prompt_templates = self.get_prompt_template_for_promql_queries()
         for prompt_tem in prompt_templates:
             prompt_template = PromptTemplate(input_variables=prompt_tem['input_variables'],
@@ -244,7 +244,7 @@ class PromptFactory:
     def prompt_template_for_prom_summary_from_metric_data(self):
         prompts = []
         output_keys = []
-        parser = PydanticOutputParser(pydantic_object=PrometheusDataSummary)
+        parser = PydanticOutputParser(pydantic_object=PrometheusDataSummarySeverity)
         prompt_templates = self.get_prom_template_for_summary_from_metric_data()
         for prompt_tem in prompt_templates:
             prompt_template = PromptTemplate(input_variables=prompt_tem['input_variables'],

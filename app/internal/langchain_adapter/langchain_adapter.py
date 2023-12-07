@@ -104,7 +104,7 @@ class LangchainAdapter:
                                            callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
             return promql_queries
         except Exception as e:
-            print(f"An error occurred while getting langchain prometheus query inference: {e}")
+            logger.error(log_tag,f"An error occurred while getting prometheus queries for a given alert : {e}")
             return ""
 
     def get_prometheus_data_summary_from_metric_data(self, custom_data):
@@ -115,11 +115,12 @@ class LangchainAdapter:
                                                                                                           output_keys)
 
             overall_chain = SequentialChain(chains=promql_queries_sequential_list_chains, verbose=True,
-                                            input_variables=["title", "query", "query_metric_data"],
+                                            input_variables=["title", "query", "metric_data"],
                                             output_variables=["prom_summary"])
             prom_summary = overall_chain(custom_data,
                                          callbacks=langsmith_adapter_impl.get_langsmith_tracing_callback())
             return prom_summary
         except Exception as e:
-            print(f"An error occurred while getting langchain prometheus query inference: {e}")
+            logger.error(log_tag,f"An error occurred while getting lang chain prometheus query inference for data: "
+                                 f"{custom_data}: {e}")
             return ""
